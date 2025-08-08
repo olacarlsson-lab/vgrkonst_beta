@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.5">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.3px Verdana; color: #000000; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.3px Verdana; color: #000000; -webkit-text-stroke: #000000; min-height: 16.0px}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.3px Verdana; color: #3586ff; -webkit-text-stroke: #3586ff}
+    span.s1 {font-kerning: none}
+    span.s2 {font-kerning: none; color: #000000; -webkit-text-stroke: 0px #000000}
+    span.s3 {text-decoration: underline ; font-kerning: none; color: #3586ff; -webkit-text-stroke: 0px #3586ff}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="sv"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1">  &lt;meta charset="UTF-8" /&gt;</span></p>
+<p class="p1"><span class="s1">  &lt;meta name="viewport" content="width=device-width, initial-scale=1" /&gt;</span></p>
+<p class="p1"><span class="s1">  &lt;title&gt;VGR Öppna Data - Sökbar Tabell&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1">  &lt;style&gt;</span></p>
+<p class="p1"><span class="s1">    body {</span></p>
+<p class="p1"><span class="s1">      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;</span></p>
+<p class="p1"><span class="s1">      margin: 1rem;</span></p>
+<p class="p1"><span class="s1">      background: #f7f9fc;</span></p>
+<p class="p1"><span class="s1">      color: #333;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    h1 {</span></p>
+<p class="p1"><span class="s1">      text-align: center;</span></p>
+<p class="p1"><span class="s1">      margin-bottom: 1rem;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    form {</span></p>
+<p class="p1"><span class="s1">      display: flex;</span></p>
+<p class="p1"><span class="s1">      flex-wrap: wrap;</span></p>
+<p class="p1"><span class="s1">      gap: 1rem;</span></p>
+<p class="p1"><span class="s1">      margin-bottom: 1rem;</span></p>
+<p class="p1"><span class="s1">      justify-content: center;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    label {</span></p>
+<p class="p1"><span class="s1">      display: flex;</span></p>
+<p class="p1"><span class="s1">      flex-direction: column;</span></p>
+<p class="p1"><span class="s1">      font-weight: 600;</span></p>
+<p class="p1"><span class="s1">      font-size: 0.9rem;</span></p>
+<p class="p1"><span class="s1">      color: #555;</span></p>
+<p class="p1"><span class="s1">      min-width: 140px;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    input[type="search"] {</span></p>
+<p class="p1"><span class="s1">      padding: 0.4rem 0.6rem;</span></p>
+<p class="p1"><span class="s1">      font-size: 1rem;</span></p>
+<p class="p1"><span class="s1">      border: 1px solid #ccc;</span></p>
+<p class="p1"><span class="s1">      border-radius: 4px;</span></p>
+<p class="p1"><span class="s1">      margin-top: 0.2rem;</span></p>
+<p class="p1"><span class="s1">      width: 160px;</span></p>
+<p class="p1"><span class="s1">      box-sizing: border-box;</span></p>
+<p class="p1"><span class="s1">      transition: border-color 0.2s;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    input[type="search"]:focus {</span></p>
+<p class="p1"><span class="s1">      outline: none;</span></p>
+<p class="p1"><span class="s1">      border-color: #0078d4;</span></p>
+<p class="p1"><span class="s1">      box-shadow: 0 0 5px rgba(0, 120, 212, 0.5);</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    button {</span></p>
+<p class="p1"><span class="s1">      padding: 0.6rem 1.2rem;</span></p>
+<p class="p1"><span class="s1">      font-size: 1rem;</span></p>
+<p class="p1"><span class="s1">      background-color: #0078d4;</span></p>
+<p class="p1"><span class="s1">      color: white;</span></p>
+<p class="p1"><span class="s1">      border: none;</span></p>
+<p class="p1"><span class="s1">      border-radius: 4px;</span></p>
+<p class="p1"><span class="s1">      cursor: pointer;</span></p>
+<p class="p1"><span class="s1">      align-self: flex-end;</span></p>
+<p class="p1"><span class="s1">      height: 38px;</span></p>
+<p class="p1"><span class="s1">      transition: background-color 0.3s;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    button:hover {</span></p>
+<p class="p1"><span class="s1">      background-color: #005a9e;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    table {</span></p>
+<p class="p1"><span class="s1">      width: 100%;</span></p>
+<p class="p1"><span class="s1">      border-collapse: collapse;</span></p>
+<p class="p1"><span class="s1">      background: white;</span></p>
+<p class="p1"><span class="s1">      border-radius: 8px;</span></p>
+<p class="p1"><span class="s1">      overflow: hidden;</span></p>
+<p class="p1"><span class="s1">      box-shadow: 0 2px 8px rgba(0,0,0,0.1);</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    th, td {</span></p>
+<p class="p1"><span class="s1">      padding: 0.75rem 1rem;</span></p>
+<p class="p1"><span class="s1">      border-bottom: 1px solid #eee;</span></p>
+<p class="p1"><span class="s1">      text-align: left;</span></p>
+<p class="p1"><span class="s1">      font-size: 0.95rem;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    th {</span></p>
+<p class="p1"><span class="s1">      background-color: #0078d4;</span></p>
+<p class="p1"><span class="s1">      color: white;</span></p>
+<p class="p1"><span class="s1">      cursor: pointer;</span></p>
+<p class="p1"><span class="s1">      user-select: none;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    tr:hover {</span></p>
+<p class="p1"><span class="s1">      background-color: #f1f9ff;</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">    @media (max-width: 700px) {</span></p>
+<p class="p1"><span class="s1">      form {</span></p>
+<p class="p1"><span class="s1">        flex-direction: column;</span></p>
+<p class="p1"><span class="s1">        align-items: stretch;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">      label {</span></p>
+<p class="p1"><span class="s1">        min-width: auto;</span></p>
+<p class="p1"><span class="s1">        width: 100%;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">      input[type="search"] {</span></p>
+<p class="p1"><span class="s1">        width: 100%;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">      button {</span></p>
+<p class="p1"><span class="s1">        width: 100%;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">      table, thead, tbody, th, td, tr {</span></p>
+<p class="p1"><span class="s1">        display: block;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">      thead tr {</span></p>
+<p class="p1"><span class="s1">        display: none;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">      tr {</span></p>
+<p class="p1"><span class="s1">        margin-bottom: 1rem;</span></p>
+<p class="p1"><span class="s1">        border: 1px solid #ccc;</span></p>
+<p class="p1"><span class="s1">        border-radius: 6px;</span></p>
+<p class="p1"><span class="s1">        padding: 0.5rem;</span></p>
+<p class="p1"><span class="s1">        background: white;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">      td {</span></p>
+<p class="p1"><span class="s1">        padding: 0.4rem 0.6rem;</span></p>
+<p class="p1"><span class="s1">        border: none;</span></p>
+<p class="p1"><span class="s1">        position: relative;</span></p>
+<p class="p1"><span class="s1">        padding-left: 50%;</span></p>
+<p class="p1"><span class="s1">        text-align: right;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">      td::before {</span></p>
+<p class="p1"><span class="s1">        position: absolute;</span></p>
+<p class="p1"><span class="s1">        top: 50%;</span></p>
+<p class="p1"><span class="s1">        left: 1rem;</span></p>
+<p class="p1"><span class="s1">        transform: translateY(-50%);</span></p>
+<p class="p1"><span class="s1">        white-space: nowrap;</span></p>
+<p class="p1"><span class="s1">        font-weight: 600;</span></p>
+<p class="p1"><span class="s1">        color: #555;</span></p>
+<p class="p1"><span class="s1">        content: attr(data-label);</span></p>
+<p class="p1"><span class="s1">        text-align: left;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p1"><span class="s1">  &lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">  &lt;h1&gt;VGR Öppna Data&lt;/h1&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">  &lt;form id="searchForm" aria-label="Sök i datasetet"&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;label&gt;</span></p>
+<p class="p1"><span class="s1">      Konsttyp</span></p>
+<p class="p1"><span class="s1">      &lt;input type="search" id="artformInput" placeholder="Sök Konsttyp" autocomplete="off" /&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;/label&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;label&gt;</span></p>
+<p class="p1"><span class="s1">      Konstnär</span></p>
+<p class="p1"><span class="s1">      &lt;input type="search" id="creatorInput" placeholder="Sök Konstnär" autocomplete="off" /&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;/label&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;label&gt;</span></p>
+<p class="p1"><span class="s1">      Framställningsår</span></p>
+<p class="p1"><span class="s1">      &lt;input type="search" id="createdInput" placeholder="Sök Framställningsår" autocomplete="off" /&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;/label&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;label&gt;</span></p>
+<p class="p1"><span class="s1">      VG-nummer</span></p>
+<p class="p1"><span class="s1">      &lt;input type="search" id="idInput" placeholder="Sök VG-nummer" autocomplete="off" /&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;/label&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;label&gt;</span></p>
+<p class="p1"><span class="s1">      Titel</span></p>
+<p class="p1"><span class="s1">      &lt;input type="search" id="titleInput" placeholder="Sök Titel" autocomplete="off" /&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;/label&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;label&gt;</span></p>
+<p class="p1"><span class="s1">      Teknik</span></p>
+<p class="p1"><span class="s1">      &lt;input type="search" id="artmediumInput" placeholder="Sök Teknik" autocomplete="off" /&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;/label&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;label&gt;</span></p>
+<p class="p1"><span class="s1">      Äldre id</span></p>
+<p class="p1"><span class="s1">      &lt;input type="search" id="olderIdInput" placeholder="Sök Äldre id" autocomplete="off" /&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;/label&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;button type="submit"&gt;Sök&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1">  &lt;/form&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">  &lt;table id="dataTable" aria-describedby="tableDescription" role="grid" aria-live="polite" aria-relevant="all"&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;thead id="tableHead"&gt;&lt;/thead&gt;</span></p>
+<p class="p1"><span class="s1">    &lt;tbody id="tableBody"&gt;&lt;/tbody&gt;</span></p>
+<p class="p1"><span class="s1">  &lt;/table&gt;</span></p>
+<p class="p1"><span class="s1">  &lt;p id="tableDescription" class="visually-hidden"&gt;Tabell med data från VGR Öppna Data&lt;/p&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">  &lt;script&gt;</span></p>
+<p class="p3"><span class="s2">    const datasetBaseURL = '<a href="https://vgregion.entryscape.net/rowstore/dataset/1802e57a-b25d-4716-8437-9ed648bbae59"><span class="s3">https://vgregion.entryscape.net/rowstore/dataset/1802e57a-b25d-4716-8437-9ed648bbae59</span></a>';</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">    // Mappning API-fält -&gt; Svenska rubriker</span></p>
+<p class="p1"><span class="s1">    const columnsMap = {</span></p>
+<p class="p1"><span class="s1">      "artform": "Konsttyp",</span></p>
+<p class="p1"><span class="s1">      "creator": "Konstnär",</span></p>
+<p class="p1"><span class="s1">      "created": "Framställningsår",</span></p>
+<p class="p1"><span class="s1">      "id": "VG-nummer",</span></p>
+<p class="p1"><span class="s1">      "title": "Titel",</span></p>
+<p class="p1"><span class="s1">      "artmedium": "Teknik",</span></p>
+<p class="p1"><span class="s1">      "older id": "Äldre id"</span></p>
+<p class="p1"><span class="s1">    };</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">    let allData = [];</span></p>
+<p class="p1"><span class="s1">    let currentSortColumn = null;</span></p>
+<p class="p1"><span class="s1">    let currentSortAsc = true;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">    // Bygger querystring med rätt encode och mellanslag som %20</span></p>
+<p class="p1"><span class="s1">    function buildQuery(params) {</span></p>
+<p class="p1"><span class="s1">      const parts = [];</span></p>
+<p class="p1"><span class="s1">      for (const key in params) {</span></p>
+<p class="p1"><span class="s1">        if (params[key]) {</span></p>
+<p class="p1"><span class="s1">          // Ersätt mellanslag i nycklar med ' ' (Entryscape kräver space, inte _ eller %20)</span></p>
+<p class="p1"><span class="s1">          const encodedKey = encodeURIComponent(key).replace(/%20/g, ' ');</span></p>
+<p class="p1"><span class="s1">          const val = key === 'id' ? params[key].toUpperCase() : params[key];</span></p>
+<p class="p1"><span class="s1">          const encodedVal = encodeURIComponent(val);</span></p>
+<p class="p1"><span class="s1">          parts.push(`${encodedKey}=${encodedVal}`);</span></p>
+<p class="p1"><span class="s1">        }</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">      return parts.length ? '?' + parts.join('&amp;') + '&amp;_limit=100&amp;_offset=0' : '?_limit=100&amp;_offset=0';</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">    async function fetchData(params = {}) {</span></p>
+<p class="p1"><span class="s1">      const url = datasetBaseURL + buildQuery(params);</span></p>
+<p class="p1"><span class="s1">      try {</span></p>
+<p class="p1"><span class="s1">        const res = await fetch(url, { headers: { accept: 'application/json' } });</span></p>
+<p class="p1"><span class="s1">        if (!res.ok) throw new Error(`HTTP-fel: ${res.status}`);</span></p>
+<p class="p1"><span class="s1">        const json = await res.json();</span></p>
+<p class="p1"><span class="s1">        allData = json.results || [];</span></p>
+<p class="p1"><span class="s1">        renderTable(allData);</span></p>
+<p class="p1"><span class="s1">      } catch (err) {</span></p>
+<p class="p1"><span class="s1">        alert('Hämtfel: ' + err.message);</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">    function renderTable(data) {</span></p>
+<p class="p1"><span class="s1">      const tableHead = document.getElementById('tableHead');</span></p>
+<p class="p1"><span class="s1">      const tableBody = document.getElementById('tableBody');</span></p>
+<p class="p1"><span class="s1">      tableHead.innerHTML = '';</span></p>
+<p class="p1"><span class="s1">      tableBody.innerHTML = '';</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">      if (data.length === 0) {</span></p>
+<p class="p1"><span class="s1">        tableBody.innerHTML = '&lt;tr&gt;&lt;td colspan="100%"&gt;Inga resultat.&lt;/td&gt;&lt;/tr&gt;';</span></p>
+<p class="p1"><span class="s1">        return;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">      // Visa endast de kolumner vi vill, med svenska rubriker</span></p>
+<p class="p1"><span class="s1">      const headers = Object.keys(columnsMap);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">      // Skapa header-rad</span></p>
+<p class="p1"><span class="s1">      const trHead = document.createElement('tr');</span></p>
+<p class="p1"><span class="s1">      headers.forEach(col =&gt; {</span></p>
+<p class="p1"><span class="s1">        const th = document.createElement('th');</span></p>
+<p class="p1"><span class="s1">        th.textContent = columnsMap[col];</span></p>
+<p class="p1"><span class="s1">        th.tabIndex = 0;</span></p>
+<p class="p1"><span class="s1">        th.onclick = () =&gt; sortTableByColumn(col);</span></p>
+<p class="p1"><span class="s1">        trHead.appendChild(th);</span></p>
+<p class="p1"><span class="s1">      });</span></p>
+<p class="p1"><span class="s1">      tableHead.appendChild(trHead);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">      // Skapa rader</span></p>
+<p class="p1"><span class="s1">      data.forEach(row =&gt; {</span></p>
+<p class="p1"><span class="s1">        const tr = document.createElement('tr');</span></p>
+<p class="p1"><span class="s1">        headers.forEach(col =&gt; {</span></p>
+<p class="p1"><span class="s1">          const td = document.createElement('td');</span></p>
+<p class="p1"><span class="s1">          let val = row[col] ?? '';</span></p>
+<p class="p1"><span class="s1">          if (col === 'id' &amp;&amp; typeof val === 'string') val = val.toUpperCase();</span></p>
+<p class="p1"><span class="s1">          td.textContent = val;</span></p>
+<p class="p1"><span class="s1">          td.setAttribute('data-label', columnsMap[col]);</span></p>
+<p class="p1"><span class="s1">          tr.appendChild(td);</span></p>
+<p class="p1"><span class="s1">        });</span></p>
+<p class="p1"><span class="s1">        tableBody.appendChild(tr);</span></p>
+<p class="p1"><span class="s1">      });</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">    function sortTableByColumn(col) {</span></p>
+<p class="p1"><span class="s1">      if (currentSortColumn === col) {</span></p>
+<p class="p1"><span class="s1">        currentSortAsc = !currentSortAsc;</span></p>
+<p class="p1"><span class="s1">      } else {</span></p>
+<p class="p1"><span class="s1">        currentSortColumn = col;</span></p>
+<p class="p1"><span class="s1">        currentSortAsc = true;</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">      const sorted = [...allData].sort((a, b) =&gt; {</span></p>
+<p class="p1"><span class="s1">        const valA = (a[col] ?? '').toString().toLowerCase();</span></p>
+<p class="p1"><span class="s1">        const valB = (b[col] ?? '').toString().toLowerCase();</span></p>
+<p class="p1"><span class="s1">        if (valA &lt; valB) return currentSortAsc ? -1 : 1;</span></p>
+<p class="p1"><span class="s1">        if (valA &gt; valB) return currentSortAsc ? 1 : -1;</span></p>
+<p class="p1"><span class="s1">        return 0;</span></p>
+<p class="p1"><span class="s1">      });</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">      renderTable(sorted);</span></p>
+<p class="p1"><span class="s1">    }</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">    // Hantera submit i formuläret</span></p>
+<p class="p1"><span class="s1">    document.getElementById('searchForm').addEventListener('submit', e =&gt; {</span></p>
+<p class="p1"><span class="s1">      e.preventDefault();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">      // Läs in alla sökfält</span></p>
+<p class="p1"><span class="s1">      const params = {};</span></p>
+<p class="p1"><span class="s1">      for (const key in columnsMap) {</span></p>
+<p class="p1"><span class="s1">        const input = document.getElementById(key.replace(' ', '') + 'Input'); // t.ex. "older id" =&gt; "olderidInput"</span></p>
+<p class="p1"><span class="s1">        if (input) {</span></p>
+<p class="p1"><span class="s1">          const val = input.value.trim();</span></p>
+<p class="p1"><span class="s1">          if (val) params[key] = val;</span></p>
+<p class="p1"><span class="s1">        }</span></p>
+<p class="p1"><span class="s1">      }</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">      fetchData(params);</span></p>
+<p class="p1"><span class="s1">    });</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">    // Ladda initialt utan filter</span></p>
+<p class="p1"><span class="s1">    fetchData();</span></p>
+<p class="p1"><span class="s1">  &lt;/script&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+</body>
+</html>
