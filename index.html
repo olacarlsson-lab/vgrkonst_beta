@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VGR Konst Sök</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="theme-color" content="#0077cc" />
+
+  <style>
+    :root{--brand:#0077cc;--brand-dark:#005a9e;--bg:#f7f9fc}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:#222}
+    header{padding:18px 16px;text-align:center}
+    header h1{margin:0;color:#004a99;font-size:1.25rem}
+
+    .wrap{max-width:1000px;margin:0 auto;padding:0 12px 28px}
+
+    /* Sökfält – placeholders i gemener, dropdowns för konsttyp/teknik */
+    #searchForm{
+      display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));
+      gap:10px 12px;background:#fff;padding:12px;border-radius:12px;
+      box-shadow:0 8px 24px rgba(0,0,0,.06)
+    }
+    #searchForm input[type="search"], #searchForm select{
+      padding:.7rem .8rem;border:1.5px solid #d0d7de;border-radius:10px;font-size:1rem;background:#fff;
+      transition:border-color .2s,box-shadow .2s
+    }
+    #searchForm input[type="search"]::placeholder{color:#7a8694}
+    #searchForm input[type="search"]:focus, #searchForm select:focus{
+      outline:none;border-color:var(--brand);box-shadow:0 0 0 4px rgba(0,119,204,.12)
+    }
+    .actions{display:flex;gap:10px;align-items:stretch}
+    button{
+      border:none;border-radius:10px;padding:.8rem 1.1rem;font-weight:600;cursor:pointer;
+      box-shadow:0 6px 16px rgba(0,0,0,.08)
+    }
+    #searchBtn{background:var(--brand);color:#fff}
+    #searchBtn:hover{background:var(--brand-dark)}
+    #clearBtn{background:#e8eef5;color:#123}
+    #clearBtn:hover{background:#dbe7f3}
+
+    /* Totaler */
+    #totalCount{margin-top:10px;font-size:.95rem;color:#444}
+
+    /* Kortlayout */
+    .cards{margin-top:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .card{
+      background:#fff;border-radius:14px;padding:14px 14px;
+      box-shadow:0 8px 22px rgba(0,0,0,.06);
+      display:flex;flex-direction:column;gap:8px
+    }
+    .kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;align-items:start}
+    .k{color:#5b6b7a;font-size:.9rem}
+    .v{font-weight:600}
+    .empty{margin-top:16px;color:#566;text-align:center}
+
+    /* Mobilanpassning */
+    @media (max-width: 900px){
+      #searchForm{grid-template-columns:repeat(2,1fr)}
+      .cards{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width: 560px){
+      header h1{font-size:1.1rem}
+      #searchForm{grid-template-columns:1fr}
+      .actions{flex-direction:column}
+      #searchBtn,#clearBtn{width:100%}
+      .cards{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <header><h1>VGR öppna konstdata – sök</h1></header>
+  <div class="wrap">
+
+    <!-- Formulär utan labels; placeholders i gemener; dropdowns för konsttyp/teknik -->
+    <form id="searchForm" aria-label="Sök i datasetet">
+      <input type="search" id="creatorInput" placeholder="konstnär" autocomplete="off" />
+      <input type="search" id="titleInput" placeholder="titel" autocomplete="off" />
+      <input type="search" id="createdInput" placeholder="framställningsår" autocomplete="off" />
+
+      <select id="artformSelect">
+        <option value="">konsttyp (alla)</option>
+      </select>
+
+      <select id="artmediumSelect">
+        <option value="">teknik (alla)</option>
+      </select>
+
+      <input type="search" id="idInput" placeholder="vg-nummer" autocomplete="off" />
+      <input type="search" id="olderIdInput" placeholder="äldre id" autocomplete="off" />
+
+      <div class="actions">
+        <button id="searchBtn" type="submit">Sök</button>
+        <button id="clearBtn" type="button">Rensa</button>
+      </div>
+    </form>
+
+    <!-- Totaler -->
+    <div id="totalCount"></div>
+
+    <div id="cards" class="cards" role="list"></div>
+    <div id="empty" class="empty" hidden>Inga resultat.</div>
+  </div>
+
+  <script>
+    // ======= Konfiguration =======
+    const datasetBaseURL = 'https://vgregion.entryscape.net/rowstore/dataset/1802e57a-b25d-4716-8437-9ed648bbae59';
+    const BOM_OLDER_ID_KEY = '\uFEFFolder id';
+
+    const columnsOrder = ["creator","title","created","artform","artmedium","id",BOM_OLDER_ID_KEY];
+    const columnsMap = {
+      "creator":"Konstnär","title":"Titel","created":"Framställningsår",
+      "artform":"Konsttyp","artmedium":"Teknik","id":"VG-nummer",[BOM_OLDER_ID_KEY]:"Äldre id"
+    };
+
+    // Mappar formulärfält (obs select för artform/tech)
+    const inputIdMap = {
+      "creator":"creatorInput","title":"titleInput","created":"createdInput",
+      "artform":"artformSelect","artmedium":"artmediumSelect","id":"idInput",[BOM_OLDER_ID_KEY]:"olderIdInput"
+    };
+
+    let allData = [];
+
+    // ======= Dropdown-listor (från dig, deduplicerat och städat) =======
+    const ART_FORMS = [
+      "Blandteknik","Collage","Emalj","Fotografi","Grafik","Installation","Ljud","Måleri","Objekt",
+      "Relief","Rörlig bild","Skulptur","Teckning","Textil","Övrigt"
+    ];
+
+    const ART_MEDIA_RAW = [
+      "Övrigt","Övrigt","Vävteknik","Väggmålning","Ull","Tusch/Bläck","Tusch","Träsnitt","Trärelief","Trä","Tryck",
+      "Torrnål","Textil","Textil","Temporär","Tempera","Teckning","Svartvit","Stengods/flintgods/keramik","Sten","Skulptur",
+      "Silkscreen/Serigrafi","Silkscreen","Serigrafi","Rörlig bild","Relief","porslin","Pochoir","Plast","Pastell","Pastell",
+      "Olja","Objekt","Måleri","Monotypi","Mixed media","Mezzotint","Metall","Metall","Ljud","Litografi","Linoleum","Krita",
+      "Kopparstick","Konsthantverk/Trä","Konsthantverk/Sten","Konsthantverk/Metall","Konsthantverk/Keramik","Konsthantverk/Glas",
+      "Kol","Keramikrelief","Gravyr","Grafik","Graffiti","Gouache","Glas","Gipsrelief","Gips","Färg","Fotopolymer/Fotogravyr",
+      "Fotografi","Etsning","Emalj","Emalj","Digitalt pigmenttryck","Digitalprint/Giclée","Collografi/Intaglio","Collografi",
+      "Collage","collage","Byggnadsintegrerad","Brons","Broderi","Blyerts","Blandteknik","Blandteknik","Blandteknik",
+      "Blandteknik","Blandteknik","Blandteknik","Betong","Batik","Applikation","Akvatint","Akvarell","Akryl"
+    ];
+
+    // Städa, deduplicera och sortera lista (svensk sort)
+    function uniqueSorted(list){
+      const cleaned = list
+        .map(s => (s || '').toString().trim())
+        .filter(Boolean)
+        .map(s => s === 'collage' ? 'Collage' : s.replace(/\s+/g,' ')); // fixa 'collage'
+      const uniq = [...new Set(cleaned)];
+      return uniq.sort((a,b) => a.localeCompare(b,'sv'));
+    }
+    const ART_MEDIA = uniqueSorted(ART_MEDIA_RAW);
+
+    function populateSelect(el, options, labelAll){
+      el.innerHTML = `<option value="">${labelAll}</option>`;
+      options.forEach(v=>{
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        el.appendChild(opt);
+      });
+    }
+
+    // ======= Hjälpfunktioner =======
+    const removeAccents = (str) => str.normalize("NFD").replace(/\p{Diacritic}/gu,"").toLowerCase();
+    const capitalizeWords = (str) => str.replace(/(^|\s)\S/g, c => c.toLocaleUpperCase('sv-SE'));
+    const normalizeText = (str) => str.normalize("NFC").trim();
+    function normalizeOlderIdInput(input){
+      input = normalizeText(input);
+      if(!input) return '';
+      if(/^\d+\s*[a-zA-Z]$/.test(input)){ return input.replace(/\s*([a-zA-Z])$/,(_,L)=>' '+L.toUpperCase()); }
+      const m = input.match(/^(\d+)([a-zA-Z])$/);
+      return m ? m[1] + ' ' + m[2].toUpperCase() : input;
+    }
+    function cleanDataKeys(dataArray){
+      return dataArray.map(item=>{
+        const n={}; for(const k in item){ n[k.replace(/^\uFEFF/,'')] = item[k]; } return n;
+      });
+    }
+    function buildQuery(params){
+      const parts=[];
+      for(const key in params){
+        if(params[key]){
+          let actualKey = key, val = params[key];
+          if(key==='older id'||key===BOM_OLDER_ID_KEY){ actualKey=BOM_OLDER_ID_KEY; val=normalizeOlderIdInput(val); }
+          if(key==='id'){ val = val.toUpperCase(); }
+          parts.push(encodeURIComponent(actualKey)+'='+encodeURIComponent(val));
+        }
+      }
+      return parts.length ? '?'+parts.join('&')+'&_limit=500&_offset=0' : '?_limit=500&_offset=0';
+    }
+
+    // ======= Hämtning + lokalt accent-insensitivt filter =======
+    async function fetchData(params={}, rawSearch={}){
+      const url = datasetBaseURL + buildQuery(params);
+      console.log('🔍 URL:', url);
+      try{
+        const res = await fetch(url, {headers:{accept:'application/json'}});
+        if(!res.ok) throw new Error(`HTTP-fel: ${res.status}`);
+        const json = await res.json();
+        allData = cleanDataKeys(json.results || []);
+
+        const filterKeys = Object.keys(rawSearch);
+        if(filterKeys.length){
+          allData = allData.filter(row=>{
+            return filterKeys.every(key=>{
+              const sv = removeAccents(String(rawSearch[key] ?? ''));
+              const rv = removeAccents(String(row[key] ?? ''));
+              return rv.includes(sv);
+            });
+          });
+        }
+        renderCards(allData);
+      }catch(err){
+        document.getElementById('cards').innerHTML='';
+        document.getElementById('empty').hidden=false;
+        document.getElementById('totalCount').textContent = 'Kunde inte hämta data.';
+        console.error(err);
+        alert('Hämtfel: '+err.message);
+      }
+    }
+
+    // ======= Kort-rendering + totaler =======
+    function renderCards(data){
+      const wrap = document.getElementById('cards');
+      const empty = document.getElementById('empty');
+      const total = document.getElementById('totalCount');
+
+      wrap.innerHTML='';
+      total.textContent='';
+
+      if(!data.length){
+        empty.hidden=false;
+        total.textContent = 'Inga resultat.';
+        return;
+      }
+      empty.hidden=true;
+      // Visa >500 om vi träffar vårt maxlimit
+      total.textContent = data.length >= 500 ? 'Totalt >500 resultat' : `Totalt ${data.length} resultat`;
+
+      data.forEach(row=>{
+        const card = document.createElement('div');
+        card.className='card';
+
+        const kv = document.createElement('div');
+        kv.className='kv';
+
+        columnsOrder.forEach(col=>{
+          const key = col.replace(/^\uFEFF/,'');
+          let val = row[key] ?? '';
+          if(key==='id' && typeof val==='string') val = val.toUpperCase();
+
+          const k = document.createElement('div');
+          k.className='k';
+          k.textContent = columnsMap[col];
+
+          const v = document.createElement('div');
+          v.className='v';
+          v.textContent = val;
+
+          kv.appendChild(k);
+          kv.appendChild(v);
+        });
+
+        card.appendChild(kv);
+        wrap.appendChild(card);
+      });
+    }
+
+    // ======= Händelser =======
+    document.getElementById('searchForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      const params={}, raw={};
+      for(const key in columnsMap){
+        const cleanKey = key.replace(/^\uFEFF/,'');
+        const el = document.getElementById(inputIdMap[key]);
+        if(el){
+          let val = normalizeText(el.value);
+          if(val){
+            if(cleanKey==='creator') val = capitalizeWords(val);
+            if(cleanKey==='older id') val = normalizeOlderIdInput(val);
+            params[cleanKey]=val; raw[cleanKey]=val;
+          }
+        }
+      }
+      fetchData(params, raw);
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', ()=>{
+      document.querySelectorAll('#searchForm input').forEach(i=>i.value='');
+      document.getElementById('artformSelect').value = '';
+      document.getElementById('artmediumSelect').value = '';
+      fetchData({}, {}); // ladda om med standard
+    });
+
+    // ======= Init =======
+    // Populera dropdowns
+    populateSelect(document.getElementById('artformSelect'), ART_FORMS, 'konsttyp (alla)');
+    populateSelect(document.getElementById('artmediumSelect'), ART_MEDIA, 'teknik (alla)');
+
+    // Första laddningen
+    fetchData();
+
+    // PWA (relativ sökväg funkar på GitHub Pages)
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./sw.js')
+        .then(r=>console.log('✅ Service worker:', r.scope))
+        .catch(err=>console.error('SW-fel:', err));
+    }
+  </script>
+</body>
+</html>
