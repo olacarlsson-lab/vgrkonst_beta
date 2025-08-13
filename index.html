@@ -1,265 +1,754 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>vgrkonst</title>
-  <meta name="theme-color" content="#ffffff" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" sizes="192x192" href="icon-192.png" />
-  <link rel="icon" sizes="512x512" href="icon-512.png" />
+  <title>VGR Konst Sök</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="theme-color" content="#0077cc" />
+
   <style>
-    :root { --toolbar-h: 56px; --gap: 8px; }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
-    body { display: flex; flex-direction: column; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    header {
-      height: var(--toolbar-h);
-      display: flex; align-items: center; gap: var(--gap);
-      padding: 8px 10px; border-bottom: 1px solid #e5e7eb; background: #fafafa;
-      position: sticky; top: 0; z-index: 10;
+    :root{--brand:#0077cc;--brand-dark:#005a9e;--bg:#f7f9fc}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:#222}
+    header{padding:18px 16px;text-align:center}
+    header h1{margin:0;color:#004a99;font-size:1.25rem}
+
+    .wrap{max-width:1000px;margin:0 auto;padding:0 12px 28px}
+
+    /* Sökfält */
+    #searchForm{
+      display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));
+      gap:10px 12px;background:#fff;padding:12px;border-radius:12px;
+      box-shadow:0 8px 24px rgba(0,0,0,.06)
     }
-    header .grow { flex: 1; }
-    button, input, label { font: inherit; }
-    button {
-      padding: 6px 10px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer;
+    #searchForm input[type="search"], #searchForm select{
+      padding:.7rem .8rem;border:1.5px solid #d0d7de;border-radius:10px;font-size:1rem;background:#fff;
+      transition:border-color .2s,box-shadow .2s
     }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    #wrap { flex: 1; min-height: 0; }
-    canvas { display: block; width: 100%; height: calc(100vh - var(--toolbar-h)); touch-action: none; background: white; }
-    .seg { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; }
-    .seg input[type="range"] { width: 140px; }
+    #searchForm input[type="search"]::placeholder{color:#7a8694}
+    #searchForm input[type="search"]:focus, #searchForm select:focus{
+      outline:none;border-color:var(--brand);box-shadow:0 0 0 4px rgba(0,119,204,.12)
+    }
+    .actions{display:flex;gap:10px;align-items:stretch}
+    button{
+      border:none;border-radius:10px;padding:.8rem 1.1rem;font-weight:600;cursor:pointer;
+      box-shadow:0 6px 16px rgba(0,0,0,.08)
+    }
+    #searchBtn{background:var(--brand);color:#fff}
+    #searchBtn:hover{background:var(--brand-dark)}
+    #clearBtn{background:#e8eef5;color:#123}
+    #clearBtn:hover{background:#dbe7f3}
+
+    /* Totaler */
+    #totalCount{margin-top:10px;font-size:.95rem;color:#444}
+
+    /* Kortlayout */
+    .cards{margin-top:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .card{
+      background:#fff;border-radius:14px;padding:14px 14px;
+      box-shadow:0 8px 22px rgba(0,0,0,.06);
+      display:flex;flex-direction:column;gap:8px
+    }
+    .kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;align-items:start}
+    .k{color:#5b6b7a;font-size:.9rem}
+    .v{font-weight:600}
+    .empty{margin-top:16px;color:#566;text-align:center}
+
+    /* Urval/knapp-styles */
+    .card.selected {
+      outline: 2px solid var(--brand);
+      box-shadow: 0 8px 22px rgba(0,119,204,.18);
+    }
+    .card .add-btn {
+      align-self: flex-start;
+      padding:6px 10px; border:none; border-radius:8px; cursor:pointer; font-weight:600;
+      background:#e8eef5; color:#123;
+    }
+    .card.selected .add-btn {
+      background:#d2ebff; color:#004a99;
+    }
+
+    /* Expanderbar urvalslista */
+    .sel-list{
+      margin-top:8px; display:flex; flex-wrap:wrap; gap:6px;
+      max-height:180px; overflow:auto; padding:6px;
+      background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.06)
+    }
+    .sel-item{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 8px; border-radius:999px; background:#eef4fb; font-weight:600
+    }
+    .sel-item button{
+      border:none; background:transparent; cursor:pointer; font-weight:700; line-height:1
+    }
+    .sel-item button:hover{ opacity:.8 }
+
+    /* Mindre knappar i urvalspanelen och listan */
+    #selectionBar button { padding:4px 10px; font-size:0.85rem; border-radius:6px; box-shadow:none; }
+    .sel-item { padding:4px 6px; font-size:0.8rem; }
+    .sel-item button { font-size:0.9rem; padding:0; line-height:1; }
+
+    /* Toast */
+    .toast-wrap{
+      position: fixed; right: 14px; bottom: 14px; display: grid; gap: 8px; z-index: 9999;
+    }
+    .toast{
+      display:flex; align-items:center; gap:10px; background:#111; color:#fff; 
+      padding:10px 12px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.3);
+      max-width: min(520px, 90vw);
+    }
+    .toast button{
+      padding:6px 10px; border-radius:8px; background:#fff; color:#111; font-weight:700;
+      box-shadow:none;
+    }
+    .toast .secondary{
+      background:#2a2a2a; color:#eee; font-weight:600;
+    }
+
+    /* Mobilanpassning */
+    @media (max-width: 900px){
+      #searchForm{grid-template-columns:repeat(2,1fr)}
+      .cards{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width: 560px){
+      header h1{font-size:1.1rem}
+      #searchForm{grid-template-columns:1fr}
+      .actions{flex-direction:column}
+      #searchBtn,#clearBtn{width:100%}
+      .cards{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="seg" title="Färg">
-      <label for="color">Färg</label>
-      <input id="color" type="color" value="#1f2937" />
-    </div>
-    <div class="seg" title="Penselstorlek">
-      <label for="size">Storlek</label>
-      <input id="size" type="range" min="1" max="60" value="8" />
-      <span id="sizeVal">8</span>
-    </div>
-    <div class="grow"></div>
-    <button id="undoBtn" type="button" disabled>Ångra</button>
-    <button id="redoBtn" type="button" disabled>Gör om</button>
-    <button id="clearBtn" type="button">Rensa</button>
-    <button id="saveBtn" type="button">Spara PNG</button>
-  </header>
+  <header><h1>VGR öppna konstdata – sök</h1></header>
+  <div class="wrap">
 
-  <div id="wrap">
-    <canvas id="board"></canvas>
+    <!-- Formulär -->
+    <form id="searchForm" aria-label="Sök i datasetet">
+      <input type="search" id="creatorInput" placeholder="konstnär" autocomplete="off" />
+      <input type="search" id="titleInput" placeholder="titel" autocomplete="off" />
+      <input type="search" id="createdInput" placeholder="framställningsår" autocomplete="off" />
+
+      <select id="artformSelect">
+        <option value="">konsttyp (alla)</option>
+      </select>
+
+      <select id="artmediumSelect">
+        <option value="">teknik (alla)</option>
+      </select>
+
+      <input type="search" id="idInput" placeholder="vg-nummer" autocomplete="off" />
+      <input type="search" id="olderIdInput" placeholder="äldre id" autocomplete="off" />
+
+      <div class="actions">
+        <button id="searchBtn" type="submit">Sök</button>
+        <button id="clearBtn" type="button">Rensa</button>
+      </div>
+    </form>
+
+    <!-- Totaler + urvalspanel -->
+    <div id="totalCount"></div>
+    <div id="selectionBar" style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+      <span id="selectionCount" style="font-size:.95rem; color:#444;">Urval: 0</span>
+      <button id="addAllBtn" type="button" style="background:#e8f5e9; color:#2e7d32; font-weight:600; cursor:pointer;">
+        Lägg till alla
+      </button>
+      <button id="copySelBtn" type="button" style="background:#0077cc; color:#fff; font-weight:600; cursor:pointer;">
+        Kopiera VG
+      </button>
+      <button id="clearSelBtn" type="button" style="background:#e8eef5; color:#123; font-weight:600; cursor:pointer;">
+        Rensa urval
+      </button>
+      <button id="undoBtn" type="button" style="background:#fff3cd; color:#856404; font-weight:600; cursor:pointer;">
+        Ångra
+      </button>
+      <button id="redoBtn" type="button" style="background:#e0f7fa; color:#006064; font-weight:600; cursor:pointer;">
+        Gör om
+      </button>
+    </div>
+
+    <!-- Expanderbar urvalslista -->
+    <details id="selectionDetails" style="margin-top:6px;">
+      <summary style="cursor:pointer; user-select:none;">Visa urval</summary>
+      <div id="selectionList" class="sel-list" aria-live="polite"></div>
+    </details>
+
+    <div id="cards" class="cards" role="list"></div>
+    <div id="empty" class="empty" hidden>Inga resultat.</div>
   </div>
 
+  <!-- Toast container -->
+  <div class="toast-wrap" id="toastWrap" aria-live="polite" aria-atomic="true"></div>
+
   <script>
-    // ====== Canvas setup med HiDPI-stöd ======
-    const canvas = document.getElementById('board');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    // ======= Konfiguration =======
+    const datasetBaseURL = 'https://vgregion.entryscape.net/rowstore/dataset/1802e57a-b25d-4716-8437-9ed648bbae59';
+    const BOM_OLDER_ID_KEY = '\uFEFFolder id';
 
-    const toolbarH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--toolbar-h'));
-    function resizeCanvas(preserve = true) {
-      const dpr = window.devicePixelRatio || 1;
-      const cssW = window.innerWidth;
-      const cssH = Math.max(0, window.innerHeight - toolbarH);
+    const columnsOrder = ["creator","title","created","artform","artmedium","id",BOM_OLDER_ID_KEY];
+    const columnsMap = {
+      "creator":"Konstnär","title":"Titel","created":"Framställningsår",
+      "artform":"Konsttyp","artmedium":"Teknik","id":"VG-nummer",[BOM_OLDER_ID_KEY]:"Äldre id"
+    };
 
-      let snapshotImg = null;
-      if (preserve) {
-        snapshotImg = new Image();
-        try { snapshotImg.src = canvas.toDataURL('image/png'); } catch {}
+    const inputIdMap = {
+      "creator":"creatorInput","title":"titleInput","created":"createdInput",
+      "artform":"artformSelect","artmedium":"artmediumSelect","id":"idInput",[BOM_OLDER_ID_KEY]:"olderIdInput"
+    };
+
+    let allData = [];
+
+    // ======= Dropdown-listor =======
+    const ART_FORMS = [
+      "Blandteknik","Collage","Emalj","Fotografi","Grafik","Installation","Ljud","Måleri","Objekt",
+      "Relief","Rörlig bild","Skulptur","Teckning","Textil","Övrigt"
+    ];
+
+    const ART_MEDIA_RAW = [
+      "Övrigt","Övrigt","Vävteknik","Väggmålning","Ull","Tusch/Bläck","Tusch","Träsnitt","Trärelief","Trä","Tryck",
+      "Torrnål","Textil","Textil","Temporär","Tempera","Teckning","Svartvit","Stengods/flintgods/keramik","Sten","Skulptur",
+      "Silkscreen/Serigrafi","Silkscreen","Serigrafi","Rörlig bild","Relief","porslin","Pochoir","Plast","Pastell","Pastell",
+      "Olja","Objekt","Måleri","Monotypi","Mixed media","Mezzotint","Metall","Metall","Ljud","Litografi","Linoleum","Krita",
+      "Kopparstick","Konsthantverk/Trä","Konsthantverk/Sten","Konsthantverk/Metall","Konsthantverk/Keramik","Konsthantverk/Glas",
+      "Kol","Keramikrelief","Gravyr","Grafik","Graffiti","Gouache","Glas","Gipsrelief","Gips","Färg","Fotopolymer/Fotogravyr",
+      "Fotografi","Etsning","Emalj","Emalj","Digitalt pigmenttryck","Digitalprint/Giclée","Collografi/Intaglio","Collografi",
+      "Collage","collage","Byggnadsintegrerad","Brons","Broderi","Blyerts","Blandteknik","Blandteknik","Blandteknik",
+      "Blandteknik","Blandteknik","Blandteknik","Betong","Batik","Applikation","Akvatint","Akvarell","Akryl"
+    ];
+
+    function uniqueSorted(list){
+      const cleaned = list
+        .map(s => (s || '').toString().trim())
+        .filter(Boolean)
+        .map(s => s === 'collage' ? 'Collage' : s.replace(/\s+/g,' '));
+      const uniq = [...new Set(cleaned)];
+      return uniq.sort((a,b) => a.localeCompare(b,'sv'));
+    }
+    const ART_MEDIA = uniqueSorted(ART_MEDIA_RAW);
+
+    function populateSelect(el, options, labelAll){
+      el.innerHTML = `<option value="">${labelAll}</option>`;
+      options.forEach(v=>{
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        el.appendChild(opt);
+      });
+    }
+
+    // ======= Hjälpfunktioner =======
+    const removeAccents = (str) => str.normalize("NFD").replace(/\p{Diacritic}/gu,"").toLowerCase();
+    const capitalizeWords = (str) => str.replace(/(^|\s)\S/g, c => c.toLocaleUpperCase('sv-SE'));
+    const normalizeText = (str) => str.normalize("NFC").trim();
+    function normalizeOlderIdInput(input){
+      input = normalizeText(input);
+      if(!input) return '';
+      if(/^\d+\s*[a-zA-Z]$/.test(input)){ return input.replace(/\s*([a-zA-Z])$/,(_,L)=>' '+L.toUpperCase()); }
+      const m = input.match(/^(\d+)([a-zA-Z])$/);
+      return m ? m[1] + ' ' + m[2].toUpperCase() : input;
+    }
+    function cleanDataKeys(dataArray){
+      return dataArray.map(item=>{
+        const n={}; for(const k in item){ n[k.replace(/^\uFEFF/,'')] = item[k]; } return n;
+      });
+    }
+
+    // ****** LIMIT 100 ******
+    function buildQuery(params){
+      const parts=[];
+      for(const key in params){
+        if(params[key]){
+          let actualKey = key, val = params[key];
+          if(key==='older id'||key===BOM_OLDER_ID_KEY){ actualKey=BOM_OLDER_ID_KEY; val=normalizeOlderIdInput(val); }
+          if(key==='id'){ val = val.toUpperCase(); }
+          parts.push(encodeURIComponent(actualKey)+'='+encodeURIComponent(val));
+        }
       }
+      return parts.length ? '?'+parts.join('&')+'&_limit=100&_offset=0' : '?_limit=100&_offset=0';
+    }
 
-      canvas.style.width = cssW + 'px';
-      canvas.style.height = cssH + 'px';
-      canvas.width = Math.max(1, Math.floor(cssW * dpr));
-      canvas.height = Math.max(1, Math.floor(cssH * dpr));
+    // ======= Hämtning + lokalt accent-insensitivt filter =======
+    async function fetchData(params={}, rawSearch={}){
+      const url = datasetBaseURL + buildQuery(params);
+      try{
+        const res = await fetch(url, {headers:{accept:'application/json'}});
+        if(!res.ok) throw new Error(`HTTP-fel: ${res.status}`);
+        const json = await res.json();
+        allData = cleanDataKeys(json.results || []);
 
-      // Ställ in transform så att vi kan rita i CSS-pixlar
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+        const filterKeys = Object.keys(rawSearch);
+        if(filterKeys.length){
+          allData = allData.filter(row=>{
+            return filterKeys.every(key=>{
+              const sv = removeAccents(String(rawSearch[key] ?? ''));
+              const rv = removeAccents(String(row[key] ?? ''));
+              return rv.includes(sv);
+            });
+          });
+        }
+        renderCards(allData);
+      }catch(err){
+        document.getElementById('cards').innerHTML='';
+        document.getElementById('empty').hidden=false;
+        document.getElementById('totalCount').textContent = 'Kunde inte hämta data.';
+        console.error(err);
+        alert('Hämtfel: '+err.message);
+      }
+    }
 
-      // Återställ tidigare bild om det finns
-      if (snapshotImg && snapshotImg.complete) {
-        snapshotImg.onload = null;
-        ctx.drawImage(snapshotImg, 0, 0, canvas.width / dpr, canvas.height / dpr);
-      } else if (snapshotImg) {
-        snapshotImg.onload = () => {
-          ctx.drawImage(snapshotImg, 0, 0, canvas.width / dpr, canvas.height / dpr);
-        };
+    // ======= Urval över flera sökningar =======
+    const SEL_KEY = 'vgr_konst_selection';
+    const SEL_LIMIT = 300;
+    let selection = new Set(JSON.parse(localStorage.getItem(SEL_KEY) || '[]'));
+    function saveSelection() { localStorage.setItem(SEL_KEY, JSON.stringify([...selection])); }
+    function isVG(s) { return /^VG\d+$/i.test(String(s || '')); }
+
+    // ======= Beständig historik för ångra/gör om =======
+    const HISTORY_KEY = 'vgr_konst_selection_history';
+    const HISTORY_POS_KEY = 'vgr_konst_selection_history_pos';
+    const HISTORY_LIMIT = 1000; // max antal åtgärder att spara
+
+    // action-format:
+    // { type:'add'|'remove', id, ts }
+    // { type:'group', ops:[ {type:'add'|'remove', id}, ... ], ts }
+    let selectionHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    let historyPos = parseInt(localStorage.getItem(HISTORY_POS_KEY) || '0', 10) || 0;
+    let isReplaying = false;
+
+    function saveHistory() {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(selectionHistory));
+      localStorage.setItem(HISTORY_POS_KEY, String(historyPos));
+    }
+    function truncateHistoryTail() {
+      if (historyPos < selectionHistory.length) {
+        selectionHistory = selectionHistory.slice(0, historyPos);
+      }
+    }
+    function pushHistory(action) {
+      truncateHistoryTail();
+      selectionHistory.push(action);
+      if (selectionHistory.length > HISTORY_LIMIT) {
+        selectionHistory.shift();
+        historyPos = Math.max(0, historyPos - 1);
+      }
+      historyPos = selectionHistory.length;
+      saveHistory();
+      setUndoRedoButtonState();
+    }
+    function setUndoRedoButtonState() {
+      const undoBtn = document.getElementById('undoBtn');
+      const redoBtn = document.getElementById('redoBtn');
+      if (undoBtn) undoBtn.disabled = historyPos <= 0;
+      if (redoBtn) redoBtn.disabled = historyPos >= selectionHistory.length;
+    }
+
+    // ======= ”Kärnoperationer” utan historiklogg (för replay/batch) =======
+    function addToSelectionInternal(id) {
+      id = String(id || '').toUpperCase();
+      if (!isVG(id)) return false;
+      if (selection.size >= SEL_LIMIT && !selection.has(id)) return false;
+      if (!selection.has(id)) { selection.add(id); return true; }
+      return false;
+    }
+    function removeFromSelectionInternal(id) {
+      id = String(id || '').toUpperCase();
+      if (selection.has(id)) { selection.delete(id); return true; }
+      return false;
+    }
+
+    // ======= Publika operationer med historiklogg =======
+    function addToSelection(id) {
+      id = String(id || '').toUpperCase();
+      if (!isVG(id)) return;
+      if (selection.size >= SEL_LIMIT && !selection.has(id)) {
+        alert(`Max ${SEL_LIMIT} i urvalet.`);
+        return;
+      }
+      if (!selection.has(id)) {
+        selection.add(id);
+        saveSelection();
+        updateSelectionUI();
+        if (!isReplaying) {
+          pushHistory({ type:'add', id, ts:Date.now() });
+          showToast(`La till ${id} i urvalet.`, { actionLabel:'Ångra', onAction: undoSelection });
+        }
+      }
+    }
+    function removeFromSelection(id) {
+      id = String(id || '').toUpperCase();
+      if (selection.has(id)) {
+        selection.delete(id);
+        saveSelection();
+        updateSelectionUI();
+        if (!isReplaying) {
+          pushHistory({ type:'remove', id, ts:Date.now() });
+          showToast(`Tog bort ${id} från urvalet.`, { actionLabel:'Ångra', onAction: undoSelection });
+        }
+      }
+    }
+    function toggleSelection(id) {
+      const up = String(id || '').toUpperCase();
+      selection.has(up) ? removeFromSelection(up) : addToSelection(up);
+    }
+
+    // ======= Undo/Redo =======
+    function applyActionForward(action) {
+      if (action.type === 'add') return addToSelectionInternal(action.id);
+      if (action.type === 'remove') return removeFromSelectionInternal(action.id);
+      if (action.type === 'group') {
+        let changed = false;
+        for (const op of action.ops) {
+          if (op.type === 'add') changed = addToSelectionInternal(op.id) || changed;
+          else if (op.type === 'remove') changed = removeFromSelectionInternal(op.id) || changed;
+        }
+        return changed;
+      }
+      return false;
+    }
+    function applyActionBackward(action) {
+      if (action.type === 'add') return removeFromSelectionInternal(action.id);
+      if (action.type === 'remove') return addToSelectionInternal(action.id);
+      if (action.type === 'group') {
+        let changed = false;
+        // backa i omvänd ordning
+        for (let i = action.ops.length - 1; i >= 0; i--) {
+          const op = action.ops[i];
+          if (op.type === 'add') changed = removeFromSelectionInternal(op.id) || changed;
+          else if (op.type === 'remove') changed = addToSelectionInternal(op.id) || changed;
+        }
+        return changed;
+      }
+      return false;
+    }
+    function undoSelection() {
+      if (historyPos <= 0) { alert('Inget att ångra.'); return; }
+      const action = selectionHistory[historyPos - 1];
+      isReplaying = true;
+      const changed = applyActionBackward(action);
+      isReplaying = false;
+
+      if (changed) {
+        historyPos -= 1;
+        saveSelection();
+        updateSelectionUI();
+        setUndoRedoButtonState();
+        showToast('Åtgärd ångrad.', { actionLabel:'Gör om', onAction: redoSelection });
       } else {
-        // tom bakgrund
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        historyPos -= 1;
+        saveHistory();
+        setUndoRedoButtonState();
       }
     }
-    window.addEventListener('resize', () => resizeCanvas(true));
-    resizeCanvas(false);
+    function redoSelection() {
+      if (historyPos >= selectionHistory.length) { alert('Inget att göra om.'); return; }
+      const action = selectionHistory[historyPos];
+      isReplaying = true;
+      const changed = applyActionForward(action);
+      isReplaying = false;
 
-    // ====== Verktygsinställningar ======
-    const colorEl = document.getElementById('color');
-    const sizeEl = document.getElementById('size');
-    const sizeVal = document.getElementById('sizeVal');
-    function applyBrush() {
-      ctx.strokeStyle = colorEl.value;
-      ctx.fillStyle = colorEl.value;
-      ctx.lineWidth = parseFloat(sizeEl.value);
-      sizeVal.textContent = sizeEl.value;
+      if (changed) {
+        historyPos += 1;
+        saveSelection();
+        updateSelectionUI();
+        setUndoRedoButtonState();
+        showToast('Åtgärd genomförd igen.', { actionLabel:'Ångra', onAction: undoSelection });
+      } else {
+        alert('Kunde inte genomföra ”Gör om”.');
+      }
     }
-    applyBrush();
-    colorEl.addEventListener('input', applyBrush);
-    sizeEl.addEventListener('input', applyBrush);
 
-    // ====== Undo/Redo-stackar ======
-    const undoStack = [];
-    const redoStack = [];
-    const MAX_HISTORY = 80;
+    // ======= Toast =======
+    function showToast(message, opts={}) {
+      const wrap = document.getElementById('toastWrap');
+      if (!wrap) return;
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.setAttribute('role','status');
 
-    function snapshot() {
-      // OBS: fungerar endast om canvas INTE är tainted (inga externa bilder utan CORS)
-      return ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const msg = document.createElement('div');
+      msg.textContent = message;
+      el.appendChild(msg);
+
+      if (opts.actionLabel && typeof opts.onAction === 'function') {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = opts.actionLabel;
+        btn.addEventListener('click', () => {
+          try { opts.onAction(); } catch(e) {}
+          wrap.removeChild(el);
+        });
+        el.appendChild(btn);
+      }
+
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.textContent = 'Stäng';
+      closeBtn.className = 'secondary';
+      closeBtn.addEventListener('click', ()=> wrap.removeChild(el));
+      el.appendChild(closeBtn);
+
+      wrap.appendChild(el);
+
+      // auto-hide efter 4s om användaren inte hovrar
+      let hideTO = setTimeout(()=>{ if (wrap.contains(el)) wrap.removeChild(el); }, 4000);
+      el.addEventListener('mouseenter', ()=> clearTimeout(hideTO));
+      el.addEventListener('mouseleave', ()=> hideTO = setTimeout(()=>{ if (wrap.contains(el)) wrap.removeChild(el); }, 2000));
     }
-    function restore(imgData) {
-      // imgData skapad i backing store (DPR), så vi sätter transform till 1:1 temporärt
-      const m = ctx.getTransform();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.putImageData(imgData, 0, 0);
-      ctx.setTransform(m);
-      updateUndoRedoButtons();
+
+    // ======= Kort-rendering + totaler =======
+    function renderCards(data){
+      const wrap = document.getElementById('cards');
+      const empty = document.getElementById('empty');
+      const total = document.getElementById('totalCount');
+
+      wrap.innerHTML='';
+      total.textContent='';
+
+      if(!data.length){
+        empty.hidden=false;
+        total.textContent = 'Inga resultat.';
+        updateSelectionUI();
+        return;
+      }
+
+      empty.hidden=true;
+      total.textContent = data.length >= 100 ? 'Totalt ≥100 resultat (visar max 100)' : `Totalt ${data.length} resultat`;
+
+      data.forEach(row=>{
+        const card = document.createElement('div');
+        card.className='card';
+
+        // VG-id som uppercase (kan saknas i enstaka rader)
+        const vg = (row['id'] || '').toString().toUpperCase();
+        if (isVG(vg)) card.setAttribute('data-vg', vg);
+
+        const kv = document.createElement('div');
+        kv.className='kv';
+
+        columnsOrder.forEach(col=>{
+          const key = col.replace(/^\uFEFF/,'');
+          let val = row[key] ?? '';
+          if(key==='id' && typeof val==='string') val = val.toUpperCase();
+
+          const k = document.createElement('div');
+          k.className='k';
+          k.textContent = columnsMap[col];
+
+          const v = document.createElement('div');
+          v.className='v';
+          v.textContent = val;
+
+          kv.appendChild(k);
+          kv.appendChild(v);
+        });
+
+        // Lägg till/ta bort-knapp
+        const btn = document.createElement('button');
+        btn.className = 'add-btn';
+        btn.type = 'button';
+        btn.title = isVG(vg) ? `Lägg till/ta bort ${vg} från urval` : 'Denna rad saknar giltigt VG-nummer';
+        const selected = selection.has(vg);
+        btn.textContent = selected ? 'Ta bort från urval' : 'Lägg till i urval';
+        btn.setAttribute('aria-pressed', String(selected));
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!isVG(vg)) {
+            alert('Denna rad saknar giltigt VG-nummer.');
+            return;
+          }
+          toggleSelection(vg);
+        });
+
+        card.appendChild(kv);
+        card.appendChild(btn);
+
+        if (selected) card.classList.add('selected');
+
+        wrap.appendChild(card);
+      });
+
+      updateSelectionUI();
     }
-    function pushUndo() {
-      redoStack.length = 0;
+
+    // ======= UI för urvalet =======
+    function updateSelectionUI() {
+      const el = document.getElementById('selectionCount');
+      if (el) el.textContent = `Urval: ${selection.size}`;
+
+      // Uppdatera knapparnas text i synliga kort
+      document.querySelectorAll('.card[data-vg]').forEach(card => {
+        const id = card.getAttribute('data-vg') || '';
+        const btn = card.querySelector('.add-btn');
+        if (!btn) return;
+        const selected = selection.has(id.toUpperCase());
+        btn.textContent = selected ? 'Ta bort från urval' : 'Lägg till i urval';
+        btn.setAttribute('aria-pressed', String(selected));
+        card.classList.toggle('selected', selected);
+      });
+
+      // Rita expanderbar lista
+      const list = document.getElementById('selectionList');
+      if (list) {
+        const ids = [...selection].sort((a,b)=>a.localeCompare(b,'sv',{numeric:true}));
+        list.innerHTML = ids.map(id =>
+          `<span class="sel-item" data-id="${id}">
+             ${id}
+             <button type="button" aria-label="Ta bort ${id}" title="Ta bort ${id}" data-remove="${id}">×</button>
+           </span>`
+        ).join('');
+
+        // Uppdatera summary-text
+        const details = document.getElementById('selectionDetails');
+        const summary = details?.querySelector('summary');
+        if (summary) summary.textContent = selection.size ? `Visa urval (${selection.size})` : 'Visa urval';
+      }
+
+      setUndoRedoButtonState();
+    }
+
+    // Kopiera hela urvalet
+    async function copySelectionToClipboard() {
+      if (selection.size === 0) {
+        alert('Urvalet är tomt.');
+        return;
+      }
+      const ids = [...selection].map(id => `"${id}"`).join(', ');
       try {
-        // spara backing store-data, inte CSS-pixlar
-        const m = ctx.getTransform();
-        ctx.setTransform(1,0,0,1,0,0);
-        undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-        ctx.setTransform(m);
-        if (undoStack.length > MAX_HISTORY) undoStack.shift();
+        await navigator.clipboard.writeText(ids);
+        showToast(`Kopierade ${selection.size} VG-nummer till urklipp.`);
       } catch (e) {
-        console.warn('Kunde inte spara historik (tainted canvas?):', e);
+        console.warn('Clipboard API misslyckades:', e);
+        window.prompt('Kopiera manuellt:', ids);
       }
-      updateUndoRedoButtons();
-    }
-    function undo() {
-      if (!undoStack.length) return;
-      try {
-        const m = ctx.getTransform();
-        ctx.setTransform(1,0,0,1,0,0);
-        const cur = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        ctx.setTransform(m);
-        redoStack.push(cur);
-        const prev = undoStack.pop();
-        restore(prev);
-      } catch (e) { console.warn('Kunde inte ångra:', e); }
-      updateUndoRedoButtons();
-    }
-    function redo() {
-      if (!redoStack.length) return;
-      try {
-        const m = ctx.getTransform();
-        ctx.setTransform(1,0,0,1,0,0);
-        const cur = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        ctx.setTransform(m);
-        undoStack.push(cur);
-        const next = redoStack.pop();
-        restore(next);
-      } catch (e) { console.warn('Kunde inte göra om:', e); }
-      updateUndoRedoButtons();
-    }
-    function updateUndoRedoButtons() {
-      document.getElementById('undoBtn').disabled = undoStack.length === 0;
-      document.getElementById('redoBtn').disabled = redoStack.length === 0;
     }
 
-    // ====== Ritlogik (pointer) ======
-    let drawing = false;
-    let lastX = 0, lastY = 0;
-
-    function getPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left);
-      const y = (e.clientY - rect.top);
-      return { x, y };
+    // Rensa urvalet
+    function clearSelection() {
+      if (selection.size === 0) return;
+      if (!confirm('Rensa hela urvalet?')) return;
+      // Skapa en grupp-åtgärd för ångra
+      const ops = [...selection].map(id => ({ type:'remove', id }));
+      selection.clear();
+      saveSelection();
+      updateSelectionUI();
+      pushHistory({ type:'group', ops, ts:Date.now() });
+      showToast('Rensade hela urvalet.', { actionLabel:'Ångra', onAction: undoSelection });
+      document.getElementById('selectionDetails')?.removeAttribute('open');
     }
 
-    canvas.addEventListener('pointerdown', (e) => {
+    // Lägg till alla från aktuell sökning (som EN historikpost)
+    function addAllFromCurrentSearch() {
+      if (!allData || allData.length === 0) {
+        alert('Inga resultat att lägga till.');
+        return;
+      }
+      const ops = [];
+      let addedCount = 0;
+      for (const row of allData) {
+        const vg = (row['id'] || '').toString().toUpperCase();
+        if (!isVG(vg)) continue;
+        if (selection.has(vg)) continue;
+        if (selection.size >= SEL_LIMIT) break;
+        const ok = addToSelectionInternal(vg);
+        if (ok) {
+          ops.push({ type:'add', id: vg });
+          addedCount++;
+        }
+      }
+      if (addedCount === 0) {
+        alert('Inga nya VG-nummer lades till (antingen redan i urvalet eller urvalet är fullt).');
+        return;
+      }
+      saveSelection();
+      updateSelectionUI();
+      // En enda ”group”-post för allt som lades till
+      pushHistory({ type:'group', ops, ts:Date.now() });
+      showToast(`La till ${addedCount} från sökningen.`, { actionLabel:'Ångra', onAction: undoSelection });
+    }
+
+    // Knappar i urvalspanelen
+    document.getElementById('addAllBtn')?.addEventListener('click', addAllFromCurrentSearch);
+    document.getElementById('copySelBtn')?.addEventListener('click', copySelectionToClipboard);
+    document.getElementById('clearSelBtn')?.addEventListener('click', clearSelection);
+    document.getElementById('undoBtn')?.addEventListener('click', undoSelection);
+    document.getElementById('redoBtn')?.addEventListener('click', redoSelection);
+
+    // ✕-borttagning i expanderbar lista (event delegation)
+    document.getElementById('selectionList')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-remove]');
+      if (!btn) return;
+      removeFromSelection(btn.dataset.remove);
+    });
+
+    // ======= Init: seed/rebuild historik =======
+    function rebuildSelectionFromHistory() {
+      selection = new Set(); // börja om från tomt
+      isReplaying = true;
+      for (let i = 0; i < historyPos; i++) {
+        applyActionForward(selectionHistory[i]);
+      }
+      isReplaying = false;
+      saveSelection();
+    }
+    function seedHistoryFromExistingSelectionIfEmpty() {
+      if (selectionHistory.length === 0 && selection.size > 0) {
+        const ops = [...selection].sort((a,b)=>a.localeCompare(b,'sv',{numeric:true}))
+          .map(id => ({ type:'add', id }));
+        selectionHistory = [{ type:'group', ops, ts: Date.now() }];
+        historyPos = 1;
+        saveHistory();
+      }
+    }
+
+    // ======= Sökformulär =======
+    document.getElementById('searchForm').addEventListener('submit', e=>{
       e.preventDefault();
-      canvas.setPointerCapture(e.pointerId);
-      pushUndo(); // <-- snapshot innan förändring
-      drawing = true;
-      applyBrush();
-      const { x, y } = getPos(e);
-      lastX = x; lastY = y;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
+      const params={}, raw={};
+      for(const key in columnsMap){
+        const cleanKey = key.replace(/^\uFEFF/,'');
+        const el = document.getElementById(inputIdMap[key]);
+        if(el){
+          let val = normalizeText(el.value);
+          if(val){
+            if(cleanKey==='creator') val = capitalizeWords(val);
+            if(cleanKey==='older id') val = normalizeOlderIdInput(val);
+            params[cleanKey]=val; raw[cleanKey]=val;
+          }
+        }
+      }
+      fetchData(params, raw);
     });
 
-    canvas.addEventListener('pointermove', (e) => {
-      if (!drawing) return;
-      const { x, y } = getPos(e);
-      const pressure = (e.pressure && e.pressure > 0) ? e.pressure : 1;
-      ctx.lineWidth = parseFloat(sizeEl.value) * pressure;
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      lastX = x; lastY = y;
+    document.getElementById('clearBtn').addEventListener('click', ()=>{
+      document.querySelectorAll('#searchForm input').forEach(i=>i.value='');
+      document.getElementById('artformSelect').value = '';
+      document.getElementById('artmediumSelect').value = '';
+      fetchData({}, {}); // ladda om med standard
     });
 
-    function endStroke(e) {
-      if (!drawing) return;
-      drawing = false;
-      ctx.closePath();
-      updateUndoRedoButtons();
-    }
-    canvas.addEventListener('pointerup', endStroke);
-    canvas.addEventListener('pointercancel', endStroke);
-    canvas.addEventListener('pointerleave', endStroke);
+    // ======= Init =======
+    populateSelect(document.getElementById('artformSelect'), ART_FORMS, 'konsttyp (alla)');
+    populateSelect(document.getElementById('artmediumSelect'), ART_MEDIA, 'teknik (alla)');
 
-    // ====== Knappar & kortkommandon ======
-    document.getElementById('undoBtn').addEventListener('click', undo);
-    document.getElementById('redoBtn').addEventListener('click', redo);
+    // Seed/rebuild historik och urval innan första UI‑uppdateringen
+    seedHistoryFromExistingSelectionIfEmpty();
+    rebuildSelectionFromHistory();
 
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      pushUndo();
-      const m = ctx.getTransform();
-      ctx.setTransform(1,0,0,1,0,0);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.setTransform(m);
-      // vit bakgrund igen (annars transparent)
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
-      updateUndoRedoButtons();
+    // Första laddningen + visa urvalsstatus
+    fetchData().then(() => { 
+      updateSelectionUI();
+      setUndoRedoButtonState();
     });
 
-    document.getElementById('saveBtn').addEventListener('click', () => {
-      // Spara i CSS-pixelskala (skapa en temporär canvas som inte är HiDPI)
-      const dpr = window.devicePixelRatio || 1;
-      const w = canvas.width / dpr, h = canvas.height / dpr;
-      const tmp = document.createElement('canvas');
-      tmp.width = w; tmp.height = h;
-      const tctx = tmp.getContext('2d');
-      tctx.fillStyle = 'white';
-      tctx.fillRect(0, 0, w, h);
-      tctx.drawImage(canvas, 0, 0, w, h);
-      const url = tmp.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = url; a.download = 'vgrkonst.png';
-      a.click();
-    });
-
-    // Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z, Ctrl/Cmd+Y
-    window.addEventListener('keydown', (e) => {
-      const mod = e.ctrlKey || e.metaKey;
-      if (!mod) return;
-      const k = e.key.toLowerCase();
-      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
-      else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
-    });
-
-    // ====== PWA: registrera service worker om finns ======
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    // PWA
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./sw.js')
+        .then(r=>console.log('✅ Service worker:', r.scope))
+        .catch(err=>console.error('SW-fel:', err));
     }
   </script>
 </body>
