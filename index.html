@@ -88,9 +88,42 @@
     .sel-item button:hover{ opacity:.8 }
 
     /* Mindre knappar i urvalspanelen och listan */
-    #selectionBar button { padding:4px 10px; font-size:0.85rem; border-radius:6px; box-shadow:none; }
     .sel-item { padding:4px 6px; font-size:0.8rem; }
     .sel-item button { font-size:0.9rem; padding:0; line-height:1; }
+
+    /* === NY: Urvalspanel – responsiva, ikon+etikett-knappar === */
+    #selectionBar{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;
+    }
+    #selectionBar button{
+      display:inline-flex; align-items:center; gap:8px;
+      border:none; border-radius:10px; padding:8px 12px;
+      font-weight:600; cursor:pointer; box-shadow:0 1px 0 rgba(0,0,0,.02);
+      background:#f2f6fb; color:#0f172a;
+    }
+    #selectionBar #addAllBtn{ background:#e8f5e9; color:#2e7d32; }
+    #selectionBar #copySelBtn{ background:#0077cc; color:#fff; }
+    #selectionBar #clearSelBtn{ background:#e8eef5; color:#123; }
+    #selectionBar #undoBtn{ background:#fff3cd; color:#856404; }
+    #selectionBar #redoBtn{ background:#e0f7fa; color:#006064; }
+
+    #selectionBar button:active{ transform:translateY(1px); }
+    #selectionBar .icon{ font-size:1.15rem; line-height:1; }
+    #selectionBar .label{ white-space:nowrap; }
+
+    /* Kompakt mobilvy: ikon-only, sticky upptill och hor-scrollbar om det behövs */
+    @media (max-width: 560px){
+      #selectionBar{
+        position: sticky; top: 0; z-index: 4;
+        background: var(--bg); padding-block: 4px;
+        overflow-x: auto; overscroll-behavior: contain;
+      }
+      #selectionBar button{
+        padding:10px; min-width:42px; height:42px; border-radius:10px;
+      }
+      #selectionBar .label{ display:none; }
+      #selectionBar .icon{ font-size:1.25rem; }
+    }
 
     /* Toast */
     .toast-wrap{
@@ -109,7 +142,7 @@
       background:#2a2a2a; color:#eee; font-weight:600;
     }
 
-    /* Mobilanpassning */
+    /* Mobilanpassning för kort */
     @media (max-width: 900px){
       #searchForm{grid-template-columns:repeat(2,1fr)}
       .cards{grid-template-columns:repeat(2,1fr)}
@@ -152,22 +185,32 @@
 
     <!-- Totaler + urvalspanel -->
     <div id="totalCount"></div>
-    <div id="selectionBar" style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+    <div id="selectionBar">
       <span id="selectionCount" style="font-size:.95rem; color:#444;">Urval: 0</span>
-      <button id="addAllBtn" type="button" style="background:#e8f5e9; color:#2e7d32; font-weight:600; cursor:pointer;">
-        Lägg till alla
+
+      <button id="addAllBtn" type="button" aria-label="Lägg till alla">
+        <span class="icon" aria-hidden="true">➕</span>
+        <span class="label">Lägg till alla</span>
       </button>
-      <button id="copySelBtn" type="button" style="background:#0077cc; color:#fff; font-weight:600; cursor:pointer;">
-        Kopiera VG
+
+      <button id="copySelBtn" type="button" aria-label="Kopiera VG">
+        <span class="icon" aria-hidden="true">📋</span>
+        <span class="label">Kopiera VG</span>
       </button>
-      <button id="clearSelBtn" type="button" style="background:#e8eef5; color:#123; font-weight:600; cursor:pointer;">
-        Rensa urval
+
+      <button id="clearSelBtn" type="button" aria-label="Rensa urval">
+        <span class="icon" aria-hidden="true">🧹</span>
+        <span class="label">Rensa urval</span>
       </button>
-      <button id="undoBtn" type="button" style="background:#fff3cd; color:#856404; font-weight:600; cursor:pointer;">
-        Ångra
+
+      <button id="undoBtn" type="button" aria-label="Ångra">
+        <span class="icon" aria-hidden="true">↩️</span>
+        <span class="label">Ångra</span>
       </button>
-      <button id="redoBtn" type="button" style="background:#e0f7fa; color:#006064; font-weight:600; cursor:pointer;">
-        Gör om
+
+      <button id="redoBtn" type="button" aria-label="Gör om">
+        <span class="icon" aria-hidden="true">↪️</span>
+        <span class="label">Gör om</span>
       </button>
     </div>
 
@@ -414,7 +457,6 @@
       if (action.type === 'remove') return addToSelectionInternal(action.id);
       if (action.type === 'group') {
         let changed = false;
-        // backa i omvänd ordning
         for (let i = action.ops.length - 1; i >= 0; i--) {
           const op = action.ops[i];
           if (op.type === 'add') changed = removeFromSelectionInternal(op.id) || changed;
