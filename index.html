@@ -58,6 +58,35 @@
     .v{font-weight:600}
     .empty{margin-top:16px;color:#566;text-align:center}
 
+    /* Urval/knapp-styles */
+    .card.selected {
+      outline: 2px solid var(--brand);
+      box-shadow: 0 8px 22px rgba(0,119,204,.18);
+    }
+    .card .add-btn {
+      align-self: flex-start;
+      padding:6px 10px; border:none; border-radius:8px; cursor:pointer; font-weight:600;
+      background:#e8eef5; color:#123;
+    }
+    .card.selected .add-btn {
+      background:#d2ebff; color:#004a99;
+    }
+
+    /* Expanderbar urvalslista */
+    .sel-list{
+      margin-top:8px; display:flex; flex-wrap:wrap; gap:6px;
+      max-height:180px; overflow:auto; padding:6px;
+      background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.06)
+    }
+    .sel-item{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 8px; border-radius:999px; background:#eef4fb; font-weight:600
+    }
+    .sel-item button{
+      border:none; background:transparent; cursor:pointer; font-weight:700; line-height:1
+    }
+    .sel-item button:hover{ opacity:.8 }
+
     /* Mobilanpassning */
     @media (max-width: 900px){
       #searchForm{grid-template-columns:repeat(2,1fr)}
@@ -99,8 +128,23 @@
       </div>
     </form>
 
-    <!-- Totaler -->
+    <!-- Totaler + urvalspanel -->
     <div id="totalCount"></div>
+    <div id="selectionBar" style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+      <span id="selectionCount" style="font-size:.95rem; color:#444;">Urval: 0</span>
+      <button id="copySelBtn" type="button" style="padding:8px 12px; border:none; border-radius:8px; background:#0077cc; color:#fff; font-weight:600; cursor:pointer;">
+        Kopiera VG
+      </button>
+      <button id="clearSelBtn" type="button" style="padding:8px 12px; border:none; border-radius:8px; background:#e8eef5; color:#123; font-weight:600; cursor:pointer;">
+        Rensa urval
+      </button>
+    </div>
+
+    <!-- Expanderbar urvalslista -->
+    <details id="selectionDetails" style="margin-top:6px;">
+      <summary style="cursor:pointer; user-select:none;">Visa urval</summary>
+      <div id="selectionList" class="sel-list" aria-live="polite"></div>
+    </details>
 
     <div id="cards" class="cards" role="list"></div>
     <div id="empty" class="empty" hidden>Inga resultat.</div>
@@ -143,12 +187,11 @@
       "Blandteknik","Blandteknik","Blandteknik","Betong","Batik","Applikation","Akvatint","Akvarell","Akryl"
     ];
 
-    // Städa, deduplicera och sortera lista (svensk sort)
     function uniqueSorted(list){
       const cleaned = list
         .map(s => (s || '').toString().trim())
         .filter(Boolean)
-        .map(s => s === 'collage' ? 'Collage' : s.replace(/\s+/g,' ')); // fixa 'collage'
+        .map(s => s === 'collage' ? 'Collage' : s.replace(/\s+/g,' '));
       const uniq = [...new Set(cleaned)];
       return uniq.sort((a,b) => a.localeCompare(b,'sv'));
     }
@@ -223,6 +266,111 @@
       }
     }
 
+    // ======= Urval över flera sökningar =======
+    const SEL_KEY = 'vgr_konst_selection';
+    const SEL_LIMIT = 300;
+    let selection = new Set(JSON.parse(localStorage.getItem(SEL_KEY) || '[]'));
+
+    function saveSelection() {
+      localStorage.setItem(SEL_KEY, JSON.stringify([...selection]));
+    }
+
+    function isVG(s) { return /^VG\d+$/i.test(String(s || '')); }
+
+    function addToSelection(id) {
+      id = String(id || '').toUpperCase();
+      if (!isVG(id)) return;
+      if (selection.size >= SEL_LIMIT && !selection.has(id)) {
+        alert(`Max ${SEL_LIMIT} i urvalet.`);
+        return;
+      }
+      selection.add(id);
+      saveSelection();
+      updateSelectionUI();
+    }
+
+    function removeFromSelection(id) {
+      id = String(id || '').toUpperCase();
+      selection.delete(id);
+      saveSelection();
+      updateSelectionUI();
+    }
+
+    function toggleSelection(id) {
+      const up = String(id || '').toUpperCase();
+      selection.has(up) ? removeFromSelection(up) : addToSelection(up);
+    }
+
+    function updateSelectionUI() {
+      const el = document.getElementById('selectionCount');
+      if (el) el.textContent = `Urval: ${selection.size}`;
+
+      // Uppdatera knapparnas text i synliga kort
+      document.querySelectorAll('.card[data-vg]').forEach(card => {
+        const id = card.getAttribute('data-vg') || '';
+        const btn = card.querySelector('.add-btn');
+        if (!btn) return;
+        const selected = selection.has(id.toUpperCase());
+        btn.textContent = selected ? 'Ta bort från urval' : 'Lägg till i urval';
+        btn.setAttribute('aria-pressed', String(selected));
+        card.classList.toggle('selected', selected);
+      });
+
+      // Rita expanderbar lista
+      const list = document.getElementById('selectionList');
+      if (list) {
+        const ids = [...selection].sort((a,b)=>a.localeCompare(b,'sv',{numeric:true}));
+        list.innerHTML = ids.map(id =>
+          `<span class="sel-item" data-id="${id}">
+             ${id}
+             <button type="button" aria-label="Ta bort ${id}" title="Ta bort ${id}" data-remove="${id}">×</button>
+           </span>`
+        ).join('');
+
+        // Uppdatera summary-text
+        const details = document.getElementById('selectionDetails');
+        const summary = details?.querySelector('summary');
+        if (summary) summary.textContent = selection.size ? `Visa urval (${selection.size})` : 'Visa urval';
+      }
+    }
+
+    // Kopiera hela urvalet
+    async function copySelectionToClipboard() {
+      if (selection.size === 0) {
+        alert('Urvalet är tomt.');
+        return;
+      }
+      const ids = [...selection].map(id => `"${id}"`).join(', ');
+      try {
+        await navigator.clipboard.writeText(ids);
+        alert(`Kopierade ${selection.size} VG-nummer till urklipp.`);
+      } catch (e) {
+        console.warn('Clipboard API misslyckades:', e);
+        window.prompt('Kopiera manuellt:', ids);
+      }
+    }
+
+    // Rensa urvalet
+    function clearSelection() {
+      if (selection.size === 0) return;
+      if (!confirm('Rensa hela urvalet?')) return;
+      selection.clear();
+      saveSelection();
+      updateSelectionUI();
+      document.getElementById('selectionDetails')?.removeAttribute('open');
+    }
+
+    // Knappar i urvalspanelen
+    document.getElementById('copySelBtn')?.addEventListener('click', copySelectionToClipboard);
+    document.getElementById('clearSelBtn')?.addEventListener('click', clearSelection);
+
+    // ✕-borttagning i expanderbar lista (event delegation)
+    document.getElementById('selectionList')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-remove]');
+      if (!btn) return;
+      removeFromSelection(btn.dataset.remove);
+    });
+
     // ======= Kort-rendering + totaler =======
     function renderCards(data){
       const wrap = document.getElementById('cards');
@@ -235,15 +383,20 @@
       if(!data.length){
         empty.hidden=false;
         total.textContent = 'Inga resultat.';
+        updateSelectionUI();
         return;
       }
+
       empty.hidden=true;
-      // Visa >500 om vi träffar vårt maxlimit
       total.textContent = data.length >= 500 ? 'Totalt >500 resultat' : `Totalt ${data.length} resultat`;
 
       data.forEach(row=>{
         const card = document.createElement('div');
         card.className='card';
+
+        // VG-id som uppercase (kan saknas i enstaka rader)
+        const vg = (row['id'] || '').toString().toUpperCase();
+        if (isVG(vg)) card.setAttribute('data-vg', vg);
 
         const kv = document.createElement('div');
         kv.className='kv';
@@ -265,9 +418,34 @@
           kv.appendChild(v);
         });
 
+        // Lägg till/ta bort-knapp
+        const btn = document.createElement('button');
+        btn.className = 'add-btn';
+        btn.type = 'button';
+        btn.title = isVG(vg) ? `Lägg till/ta bort ${vg} från urval` : 'Denna rad saknar giltigt VG-nummer';
+        const selected = selection.has(vg);
+        btn.textContent = selected ? 'Ta bort från urval' : 'Lägg till i urval';
+        btn.setAttribute('aria-pressed', String(selected));
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!isVG(vg)) {
+            alert('Denna rad saknar giltigt VG-nummer.');
+            return;
+          }
+          toggleSelection(vg);
+        });
+
+        // Montera
         card.appendChild(kv);
+        card.appendChild(btn);
+
+        // Visuell markering om redan vald
+        if (selected) card.classList.add('selected');
+
         wrap.appendChild(card);
       });
+
+      updateSelectionUI();
     }
 
     // ======= Händelser =======
@@ -297,12 +475,11 @@
     });
 
     // ======= Init =======
-    // Populera dropdowns
     populateSelect(document.getElementById('artformSelect'), ART_FORMS, 'konsttyp (alla)');
     populateSelect(document.getElementById('artmediumSelect'), ART_MEDIA, 'teknik (alla)');
 
-    // Första laddningen
-    fetchData();
+    // Första laddningen + visa urvalsstatus
+    fetchData().then(updateSelectionUI);
 
     // PWA (relativ sökväg funkar på GitHub Pages)
     if('serviceWorker' in navigator){
