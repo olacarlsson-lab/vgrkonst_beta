@@ -58,7 +58,7 @@
     .v{font-weight:600}
     .empty{margin-top:16px;color:#566;text-align:center}
 
-    /* Urval/knapp-styles */
+    /* Urval/knapp-styles på kort */
     .card.selected {
       outline: 2px solid var(--brand);
       box-shadow: 0 8px 22px rgba(0,119,204,.18);
@@ -80,50 +80,23 @@
     }
     .sel-item{
       display:inline-flex; align-items:center; gap:6px;
-      padding:6px 8px; border-radius:999px; background:#eef4fb; font-weight:600
+      padding:4px 6px; border-radius:999px; background:#eef4fb; font-weight:600; font-size:0.8rem;
     }
     .sel-item button{
-      border:none; background:transparent; cursor:pointer; font-weight:700; line-height:1
+      border:none; background:transparent; cursor:pointer; font-weight:700; line-height:1; font-size:0.9rem; padding:0;
     }
     .sel-item button:hover{ opacity:.8 }
 
-    /* Mindre knappar i urvalspanelen och listan */
-    .sel-item { padding:4px 6px; font-size:0.8rem; }
-    .sel-item button { font-size:0.9rem; padding:0; line-height:1; }
-
-    /* === NY: Urvalspanel – responsiva, ikon+etikett-knappar === */
+    /* Urvalspanel – tillbaka till större textknappar */
     #selectionBar{
       display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;
     }
     #selectionBar button{
-      display:inline-flex; align-items:center; gap:8px;
-      border:none; border-radius:10px; padding:8px 12px;
-      font-weight:600; cursor:pointer; box-shadow:0 1px 0 rgba(0,0,0,.02);
-      background:#f2f6fb; color:#0f172a;
+      padding:.6rem .9rem; border-radius:8px; font-weight:600; box-shadow:none;
     }
-    #selectionBar #addAllBtn{ background:#e8f5e9; color:#2e7d32; }
-    #selectionBar #copySelBtn{ background:#0077cc; color:#fff; }
-    #selectionBar #clearSelBtn{ background:#e8eef5; color:#123; }
-    #selectionBar #undoBtn{ background:#fff3cd; color:#856404; }
-    #selectionBar #redoBtn{ background:#e0f7fa; color:#006064; }
-
-    #selectionBar button:active{ transform:translateY(1px); }
-    #selectionBar .icon{ font-size:1.15rem; line-height:1; }
-    #selectionBar .label{ white-space:nowrap; }
-
-    /* Kompakt mobilvy: ikon-only, sticky upptill och hor-scrollbar om det behövs */
-    @media (max-width: 560px){
-      #selectionBar{
-        position: sticky; top: 0; z-index: 4;
-        background: var(--bg); padding-block: 4px;
-        overflow-x: auto; overscroll-behavior: contain;
-      }
-      #selectionBar button{
-        padding:10px; min-width:42px; height:42px; border-radius:10px;
-      }
-      #selectionBar .label{ display:none; }
-      #selectionBar .icon{ font-size:1.25rem; }
-    }
+    #addAllBtn{background:#e8f5e9; color:#2e7d32;}
+    #copySelBtn{background:#0077cc; color:#fff;}
+    #clearSelBtn{background:#e8eef5; color:#123;}
 
     /* Toast */
     .toast-wrap{
@@ -142,7 +115,7 @@
       background:#2a2a2a; color:#eee; font-weight:600;
     }
 
-    /* Mobilanpassning för kort */
+    /* Mobilanpassning för kort och formulär */
     @media (max-width: 900px){
       #searchForm{grid-template-columns:repeat(2,1fr)}
       .cards{grid-template-columns:repeat(2,1fr)}
@@ -187,31 +160,10 @@
     <div id="totalCount"></div>
     <div id="selectionBar">
       <span id="selectionCount" style="font-size:.95rem; color:#444;">Urval: 0</span>
-
-      <button id="addAllBtn" type="button" aria-label="Lägg till alla">
-        <span class="icon" aria-hidden="true">➕</span>
-        <span class="label">Lägg till alla</span>
-      </button>
-
-      <button id="copySelBtn" type="button" aria-label="Kopiera VG">
-        <span class="icon" aria-hidden="true">📋</span>
-        <span class="label">Kopiera VG</span>
-      </button>
-
-      <button id="clearSelBtn" type="button" aria-label="Rensa urval">
-        <span class="icon" aria-hidden="true">🧹</span>
-        <span class="label">Rensa urval</span>
-      </button>
-
-      <button id="undoBtn" type="button" aria-label="Ångra">
-        <span class="icon" aria-hidden="true">↩️</span>
-        <span class="label">Ångra</span>
-      </button>
-
-      <button id="redoBtn" type="button" aria-label="Gör om">
-        <span class="icon" aria-hidden="true">↪️</span>
-        <span class="label">Gör om</span>
-      </button>
+      <button id="addAllBtn" type="button">Lägg till alla</button>
+      <button id="copySelBtn" type="button">Kopiera VG</button>
+      <button id="clearSelBtn" type="button">Rensa urval</button>
+      <!-- OBS: Inga Ångra/Gör om-knappar här längre -->
     </div>
 
     <!-- Expanderbar urvalslista -->
@@ -380,13 +332,7 @@
       }
       historyPos = selectionHistory.length;
       saveHistory();
-      setUndoRedoButtonState();
-    }
-    function setUndoRedoButtonState() {
-      const undoBtn = document.getElementById('undoBtn');
-      const redoBtn = document.getElementById('redoBtn');
-      if (undoBtn) undoBtn.disabled = historyPos <= 0;
-      if (redoBtn) redoBtn.disabled = historyPos >= selectionHistory.length;
+      // vi har inga undo/redo-knappar i panelen längre
     }
 
     // ======= ”Kärnoperationer” utan historiklogg (för replay/batch) =======
@@ -438,7 +384,7 @@
       selection.has(up) ? removeFromSelection(up) : addToSelection(up);
     }
 
-    // ======= Undo/Redo =======
+    // ======= Undo/Redo (endast via toast) =======
     function applyActionForward(action) {
       if (action.type === 'add') return addToSelectionInternal(action.id);
       if (action.type === 'remove') return removeFromSelectionInternal(action.id);
@@ -477,12 +423,11 @@
         historyPos -= 1;
         saveSelection();
         updateSelectionUI();
-        setUndoRedoButtonState();
+        // visa valfritt ”Gör om” i toast
         showToast('Åtgärd ångrad.', { actionLabel:'Gör om', onAction: redoSelection });
       } else {
         historyPos -= 1;
         saveHistory();
-        setUndoRedoButtonState();
       }
     }
     function redoSelection() {
@@ -496,7 +441,7 @@
         historyPos += 1;
         saveSelection();
         updateSelectionUI();
-        setUndoRedoButtonState();
+        // visa åter ”Ångra”
         showToast('Åtgärd genomförd igen.', { actionLabel:'Ångra', onAction: undoSelection });
       } else {
         alert('Kunde inte genomföra ”Gör om”.');
@@ -521,7 +466,7 @@
         btn.textContent = opts.actionLabel;
         btn.addEventListener('click', () => {
           try { opts.onAction(); } catch(e) {}
-          wrap.removeChild(el);
+          if (wrap.contains(el)) wrap.removeChild(el);
         });
         el.appendChild(btn);
       }
@@ -530,7 +475,7 @@
       closeBtn.type = 'button';
       closeBtn.textContent = 'Stäng';
       closeBtn.className = 'secondary';
-      closeBtn.addEventListener('click', ()=> wrap.removeChild(el));
+      closeBtn.addEventListener('click', ()=> { if (wrap.contains(el)) wrap.removeChild(el); });
       el.appendChild(closeBtn);
 
       wrap.appendChild(el);
@@ -576,16 +521,16 @@
           let val = row[key] ?? '';
           if(key==='id' && typeof val==='string') val = val.toUpperCase();
 
-          const k = document.createElement('div');
-          k.className='k';
-          k.textContent = columnsMap[col];
+        const k = document.createElement('div');
+        k.className='k';
+        k.textContent = columnsMap[col];
 
-          const v = document.createElement('div');
-          v.className='v';
-          v.textContent = val;
+        const v = document.createElement('div');
+        v.className='v';
+        v.textContent = val;
 
-          kv.appendChild(k);
-          kv.appendChild(v);
+        kv.appendChild(k);
+        kv.appendChild(v);
         });
 
         // Lägg till/ta bort-knapp
@@ -648,8 +593,6 @@
         const summary = details?.querySelector('summary');
         if (summary) summary.textContent = selection.size ? `Visa urval (${selection.size})` : 'Visa urval';
       }
-
-      setUndoRedoButtonState();
     }
 
     // Kopiera hela urvalet
@@ -668,11 +611,10 @@
       }
     }
 
-    // Rensa urvalet
+    // Rensa urvalet (som EN grupp-åtgärd)
     function clearSelection() {
       if (selection.size === 0) return;
       if (!confirm('Rensa hela urvalet?')) return;
-      // Skapa en grupp-åtgärd för ångra
       const ops = [...selection].map(id => ({ type:'remove', id }));
       selection.clear();
       saveSelection();
@@ -707,7 +649,6 @@
       }
       saveSelection();
       updateSelectionUI();
-      // En enda ”group”-post för allt som lades till
       pushHistory({ type:'group', ops, ts:Date.now() });
       showToast(`La till ${addedCount} från sökningen.`, { actionLabel:'Ångra', onAction: undoSelection });
     }
@@ -716,8 +657,6 @@
     document.getElementById('addAllBtn')?.addEventListener('click', addAllFromCurrentSearch);
     document.getElementById('copySelBtn')?.addEventListener('click', copySelectionToClipboard);
     document.getElementById('clearSelBtn')?.addEventListener('click', clearSelection);
-    document.getElementById('undoBtn')?.addEventListener('click', undoSelection);
-    document.getElementById('redoBtn')?.addEventListener('click', redoSelection);
 
     // ✕-borttagning i expanderbar lista (event delegation)
     document.getElementById('selectionList')?.addEventListener('click', (e) => {
@@ -783,7 +722,6 @@
     // Första laddningen + visa urvalsstatus
     fetchData().then(() => { 
       updateSelectionUI();
-      setUndoRedoButtonState();
     });
 
     // PWA
