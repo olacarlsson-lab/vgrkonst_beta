@@ -233,7 +233,7 @@
           parts.push(encodeURIComponent(actualKey)+'='+encodeURIComponent(val));
         }
       }
-      return parts.length ? '?'+parts.join('&')+'&_limit=500&_offset=0' : '?_limit=500&_offset=0';
+      return parts.length ? '?'+parts.join('&')+'&_limit=100&_offset=0' : '?_limit=100&_offset=0';
     }
 
     // ======= Hämtning + lokalt accent-insensitivt filter =======
@@ -388,7 +388,7 @@
       }
 
       empty.hidden=true;
-      total.textContent = data.length >= 500 ? 'Totalt >500 resultat' : `Totalt ${data.length} resultat`;
+      total.textContent = data.length >= 100  ? 'Totalt >100 resultat' : `Totalt ${data.length} resultat`;
 
       data.forEach(row=>{
         const card = document.createElement('div');
