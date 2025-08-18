@@ -81,40 +81,22 @@
     #selectionBar button { padding:4px 10px; font-size:0.85rem; border-radius:6px; box-shadow:none; }
 
     /* Mobilanpassning */
-    @media (max-width: 900px){
-      #searchForm{grid-template-columns:repeat(2,1fr)}
-      .cards{grid-template-columns:repeat(2,1fr)}
-    }
-    @media (max-width: 560px){
-      header h1{font-size:1.1rem}
-      #searchForm{grid-template-columns:1fr}
-      .actions{flex-direction:column}
-      #searchBtn,#clearBtn{width:100%}
-      .cards{grid-template-columns:1fr}
-    }
+    @media (max-width: 900px){ #searchForm{grid-template-columns:repeat(2,1fr)} .cards{grid-template-columns:repeat(2,1fr)} }
+    @media (max-width: 560px){ header h1{font-size:1.1rem} #searchForm{grid-template-columns:1fr} .actions{flex-direction:column} #searchBtn,#clearBtn{width:100%} .cards{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
   <header><h1>VGR öppna konstdata – sök</h1></header>
   <div class="wrap">
-
     <!-- Formulär -->
     <form id="searchForm" aria-label="Sök i datasetet">
       <input type="search" id="creatorInput" placeholder="konstnär" autocomplete="off" />
       <input type="search" id="titleInput" placeholder="titel" autocomplete="off" />
       <input type="search" id="createdInput" placeholder="framställningsår" autocomplete="off" />
-
-      <select id="artformSelect">
-        <option value="">konsttyp (alla)</option>
-      </select>
-
-      <select id="artmediumSelect">
-        <option value="">teknik (alla)</option>
-      </select>
-
+      <select id="artformSelect"><option value="">konsttyp (alla)</option></select>
+      <select id="artmediumSelect"><option value="">teknik (alla)</option></select>
       <input type="search" id="idInput" placeholder="vg-nummer" autocomplete="off" />
       <input type="search" id="olderIdInput" placeholder="äldre id" autocomplete="off" />
-
       <div class="actions">
         <button id="searchBtn" type="submit">Sök</button>
         <button id="clearBtn" type="button">Rensa</button>
@@ -260,12 +242,13 @@
     const SEL_KEY = 'vgr_konst_selection';
     const SEL_LIMIT = 300;
 
-    // selection: { VGID: { note: string, data: {...} } }
+    // selection som objekt: { VGID: { note: string, data: {...} } }
     let selection = (()=>{
       try{
         const raw = localStorage.getItem(SEL_KEY);
         const parsed = raw ? JSON.parse(raw) : null;
         if(Array.isArray(parsed)){
+          // Migrera från gammalt Set-format (bara id:n)
           const obj = {};
           parsed.forEach(id=>{ obj[String(id).toUpperCase()] = { note:'', data:null }; });
           localStorage.setItem(SEL_KEY, JSON.stringify(obj));
@@ -402,7 +385,7 @@
       }
     });
 
-    // ======= Export: BYGG TEXT, KOPIERA, MAILA (mailto) =======
+    // ======= Export: BYGG TEXT, KOPIERA, MAILA =======
     function buildSelectionText() {
       const ids = Object.keys(selection).sort((a,b)=>a.localeCompare(b,'sv',{numeric:true}));
       if (ids.length === 0) return null;
@@ -441,10 +424,25 @@
       const defaultSubject = `Urval – VGR konst (${new Date().toLocaleDateString('sv-SE')})`;
       const subject = prompt('Ämne för e-posten:', defaultSubject);
       if (subject === null) return; // avbrutet
+
       const encSubject = encodeURIComponent(subject.trim());
       const encBody = encodeURIComponent(text);
-      const mailtoUrl = `mailto:?subject=${encSubject}&body=${encBody}`;
-      window.location.href = mailtoUrl;
+
+      const outlookUrl = `ms-outlook://compose?subject=${encSubject}&body=${encBody}`;
+      const mailtoUrl  = `mailto:?subject=${encSubject}&body=${encBody}`;
+
+      let opened = false;
+      const timer = setTimeout(() => {
+        if (!opened) window.location.href = mailtoUrl;
+      }, 700);
+
+      try {
+        window.location.href = outlookUrl;
+        opened = true; // vi antar lyckat; fallback tar över om protokoll saknas
+      } catch (e) {
+        clearTimeout(timer);
+        window.location.href = mailtoUrl;
+      }
     }
 
     async function copyThenMaybeEmail() {
@@ -452,6 +450,7 @@
       if (!text) { alert('Urvalet är tomt.'); return; }
 
       const copied = await copySelectionToClipboard();
+      // Fråga om mail
       const goMail = confirm(copied
         ? 'Urvalet är kopierat. Vill du öppna e-post med urvalet inklistrat?'
         : 'Vill du öppna e-post med urvalet ändå?');
