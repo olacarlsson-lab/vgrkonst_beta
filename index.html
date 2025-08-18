@@ -377,17 +377,15 @@ async function fetchData(params={}, rawSearch={}){
   }
 }
 
-// ======= Urval över flera sökningar (med anteckning + datasnapshot) =======
+// ======= Urval (med anteckning + datasnapshot) =======
 const SEL_KEY = 'vgr_konst_selection';
 const SEL_LIMIT = 300;
 
-// selection som objekt: { VGID: { note: string, data: {...} } }
 let selection = (()=>{
   try{
     const raw = localStorage.getItem(SEL_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
     if(Array.isArray(parsed)){
-      // Migrera från gammalt Set-format (bara id:n)
       const obj = {};
       parsed.forEach(id=>{ obj[String(id).toUpperCase()] = { note:'', data:null }; });
       localStorage.setItem(SEL_KEY, JSON.stringify(obj));
@@ -444,7 +442,6 @@ function updateSelectionUI() {
   const el = document.getElementById('selectionCount');
   if (el) el.textContent = `Urval: ${selectionSize()}`;
 
-  // Uppdatera knapparnas text i synliga kort
   document.querySelectorAll('.card[data-vg]').forEach(card => {
     const id = card.getAttribute('data-vg') || '';
     const btn = card.querySelector('.add-btn');
@@ -455,7 +452,6 @@ function updateSelectionUI() {
     card.classList.toggle('selected', selected);
   });
 
-  // Rita expanderbar lista
   const list = document.getElementById('selectionList');
   if (list) {
     const ids = Object.keys(selection).sort((a,b)=>a.localeCompare(b,'sv',{numeric:true}));
@@ -468,14 +464,13 @@ function updateSelectionUI() {
       </span>`;
     }).join('');
 
-    // Uppdatera summary-text
     const details = document.getElementById('selectionDetails');
     const summary = details?.querySelector('summary');
     if (summary) summary.textContent = selectionSize() ? `Visa urval (${selectionSize()})` : 'Visa urval';
   }
 }
 
-// ✕/✎ i urvalslistan (event delegation)
+// ✕/✎ i urvalslistan
 document.getElementById('selectionList')?.addEventListener('click', (e) => {
   const btnRemove = e.target.closest('button[data-remove]');
   if (btnRemove) { removeFromSelection(btnRemove.dataset.remove); return; }
@@ -570,7 +565,6 @@ function renderCards(data){
     const card = document.createElement('div');
     card.className='card';
 
-    // VG-id som uppercase (kan saknas i enstaka rader)
     const vg = (row['id'] || '').toString().toUpperCase();
     if (isVG(vg)) card.setAttribute('data-vg', vg);
 
@@ -594,7 +588,6 @@ function renderCards(data){
       kv.appendChild(v);
     });
 
-    // Lägg till/ta bort-knapp
     const btn = document.createElement('button');
     btn.className = 'add-btn';
     btn.type = 'button';
