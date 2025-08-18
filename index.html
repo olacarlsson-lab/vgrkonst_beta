@@ -677,33 +677,3 @@ if('serviceWorker' in navigator){
 </script>
 </body>
 </html>
-
-    const ART_FORMS=["Blandteknik","Collage","Emalj","Fotografi","Grafik","Installation","Ljud","Måleri","Objekt","Relief","Rörlig bild","Skulptur","Teckning","Textil","Övrigt"];
-    const ART_MEDIA_RAW=["Övrigt","Övrigt","Vävteknik","Väggmålning","Ull","Tusch/Bläck","Tusch","Träsnitt","Trärelief","Trä","Tryck","Torrnål","Textil","Textil","Temporär","Tempera","Teckning","Svartvit","Stengods/flintgods/keramik","Sten","Skulptur","Silkscreen/Serigrafi","Silkscreen","Serigrafi","Rörlig bild","Relief","porslin","Pochoir","Plast","Pastell","Pastell","Olja","Objekt","Måleri","Monotypi","Mixed media","Mezzotint","Metall","Metall","Ljud","Litografi","Linoleum","Krita","Kopparstick","Konsthantverk/Trä","Konsthantverk/Sten","Konsthantverk/Metall","Konsthantverk/Keramik","Konsthantverk/Glas","Kol","Keramikrelief","Gravyr","Grafik","Graffiti","Gouache","Glas","Gipsrelief","Gips","Färg","Fotopolymer/Fotogravyr","Fotografi","Etsning","Emalj","Emalj","Digitalt pigmenttryck","Digitalprint/Giclée","Collografi/Intaglio","Collografi","Collage","collage","Byggnadsintegrerad","Brons","Broderi","Blyerts","Blandteknik","Blandteknik","Blandteknik","Blandteknik","Blandteknik","Blandteknik","Betong","Batik","Applikation","Akvatint","Akvarell","Akryl"];
-    function uniqueSorted(list){const cleaned=list.map(s=>(s||'').toString().trim()).filter(Boolean).map(s=>s==='collage'?'Collage':s.replace(/\s+/g,' '));const uniq=[...new Set(cleaned)];return uniq.sort((a,b)=>a.localeCompare(b,'sv'));}
-    const ART_MEDIA=uniqueSorted(ART_MEDIA_RAW);
-    function populateSelect(el,options,labelAll){el.innerHTML=`<option value="">${labelAll}</option>`;options.forEach(v=>{const opt=document.createElement('option');opt.value=v;opt.textContent=v;el.appendChild(opt);});}
-
-    const removeAccents=(str)=>str.normalize("NFD").replace(/\p{Diacritic}/gu,"").toLowerCase();
-    const capitalizeWords=(str)=>str.replace(/(^|\s)\S/g,c=>c.toLocaleUpperCase('sv-SE'));
-    const normalizeText=(str)=>str.normalize("NFC").trim();
-    function normalizeOlderIdInput(input){input=normalizeText(input);if(!input)return'';if(/^\d+\s*[a-zA-Z]$/.test(input)){return input.replace(/\s*([a-zA-Z])$/,(_,L)=>' '+L.toUpperCase());}const m=input.match(/^(\d+)([a-zA-Z])$/);return m?m[1]+' '+m[2].toUpperCase():input;}
-    function cleanDataKeys(dataArray){return dataArray.map(item=>{const n={};for(const k in item){n[k.replace(/^\uFEFF/,'')]=item[k];}return n;});}
-
-    async function fetchData(params={},rawSearch={}){const url=datasetBaseURL+buildQuery(params);try{const res=await fetch(url,{headers:{accept:'application/json'}});if(!res.ok)throw new Error(`HTTP-fel: ${res.status}`);const json=await res.json();allData=cleanDataKeys(json.results||[]);const filterKeys=Object.keys(rawSearch);if(filterKeys.length){allData=allData.filter(row=>{return filterKeys.every(key=>{const sv=removeAccents(String(rawSearch[key]??''));const rv=removeAccents(String(row[key]??''));return rv.includes(sv);});});}renderCards(allData);}catch(err){document.getElementById('cards').innerHTML='';document.getElementById('empty').hidden=false;document.getElementById('totalCount').textContent='Kunde inte hämta data.';console.error(err);alert('Hämtfel: '+err.message);}}
-    function buildQuery(params){const parts=[];for(const key in params){if(params[key]){let actualKey=key,val=params[key];if(key==='older id'||key===BOM_OLDER_ID_KEY){actualKey=BOM_OLDER_ID_KEY;val=normalizeOlderIdInput(val);}if(key==='id'){val=val.toUpperCase();}parts.push(encodeURIComponent(actualKey)+'='+encodeURIComponent(val));}}return parts.length?'?'+parts.join('&')+'&_limit=100&_offset=0':'?_limit=100&_offset=0';}
-
-    const SEL_KEY='vgr_konst_selection';const SEL_LIMIT=300;
-    let selection=(()=>{try{const raw=localStorage.getItem(SEL_KEY);const parsed=raw?JSON.parse(raw):null;if(Array.isArray(parsed)){const obj={};parsed.forEach(id=>{obj[String(id).toUpperCase()]={note:'',data:null};});localStorage.setItem(SEL_KEY,JSON.stringify(obj));return obj;}return parsed&&typeof parsed==='object'?parsed:{};}catch{return{};}})();
-    function saveSelection(){localStorage.setItem(SEL_KEY,JSON.stringify(selection));}
-    function selectionSize(){return Object.keys(selection).length;}
-    function hasSelection(id){return!!selection[String(id||'').toUpperCase()];}
-    function isVG(s){return/^VG\d+$/i.test(String(s||''));}
-
-    function addToSelection(entry,note=''){const id=String(entry?.id||entry||'').toUpperCase();if(!isVG(id))return;if(!hasSelection(id)&&selectionSize()>=SEL_LIMIT){alert(`Max ${SEL_LIMIT} i urvalet.`);return;}const olderKey='older id';const data=entry&&typeof entry==='object'?{creator:entry.creator??'',title:entry.title??'',created:entry.created??'',artform:entry.artform??'',artmedium:entry.artmedium??'',[olderKey]:entry[olderKey]??entry[BOM_OLDER_ID_KEY]??''}:(selection[id]?.data||null);selection[id]={note:note||(selection[id]?.note||''),data};saveSelection();updateSelectionUI();}
-    function removeFromSelection(id){id=String(id||'').toUpperCase();if(selection[id])delete selection[id];saveSelection();updateSelectionUI();}
-    function toggleSelection(entry){const id=String(entry?.id||entry||'').toUpperCase();if(hasSelection(id)){removeFromSelection(id);}else{const note=prompt('Anteckning (valfritt):','')||'';addToSelection(entry,note);}}
-
-    function updateSelectionUI(){const el=document.getElementById('selectionCount');if(el)el.textContent=`Urval: ${selectionSize()}`;document.querySelectorAll('.card[data-vg]').forEach(card=>{const id=card.getAttribute('data-vg')||'';const btn=card.querySelector('.add-btn');if(!btn)return;const selected=hasSelection(id);btn.textContent=selected?'Ta bort från urval':'Lägg till i urval';btn.setAttribute('aria-pressed',String(selected));card.classList.toggle('selected',selected);});const list=document.getElementById('selectionList');if(list){const ids=Object.keys(selection).sort((a,b)=>a.localeCompare(b,'sv',{numeric:true}));list.innerHTML=ids.map(id=>{const hasNote=(selection[id]?.note||'').trim().length>0;return `<span class="sel-item" data-id="${id}">${id}${hasNote?' 📌':''}<button type="button" data-edit="${id}" title="Redigera anteckning">✎</button><button type="button" data-remove="${id}" title="Ta bort ${id}">×</button></span>`;}).join('');const details=document.getElementById('selectionDetails');const summary=details?.querySelector('summary');if(summary)summary.textContent=selectionSize()?`Visa urval (${selectionSize()})`:'Visa urval';}}
-
-    async function copySelectionToClipboard(){const ids=Object.keys(selection).sort((a,b)=>a.localeCompare(b,'sv',{numeric:true}
