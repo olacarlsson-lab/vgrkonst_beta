@@ -496,57 +496,85 @@
     }
 
     // ======= Skylt-popup med QR-kod =======
-    function openSkylt(entry) {
-      const artist = (entry.creator || '').toString();
-      const title = (entry.title || '').toString();
-      const year  = (entry.created || '').toString();
-      const vg    = (entry.id || '').toString().toUpperCase();
+function openSkylt(entry) {
+  const artist = (entry.creator || '').toString();
+  const title  = (entry.title  || '').toString();
+  const year   = (entry.created|| '').toString();
+  const vg     = (entry.id     || '').toString().toUpperCase();
 
-      if (!/^VG\d+$/i.test(vg)) {
-        alert('Saknar giltigt VG-nummer.');
-        return;
-      }
+  if (!/^VG\d+$/i.test(vg)) {
+    alert('Saknar giltigt VG-nummer.');
+    return;
+  }
 
-      // Länk som QR pekar på (samma sida + id-parameter)
-      const base = location.origin + location.pathname;
-      const url  = new URL(base);
-      url.searchParams.set('id', vg);
+  // URL som QR ska peka på (samma sida + id-parameter)
+  const base = location.origin + location.pathname;
+  const url  = new URL(base);
+  url.searchParams.set('id', vg);
 
-      // Skapa QR som data-URL (så popupen är självförsörjande)
+  // Skapa QR som data-URL (fallback om QRious saknas)
+  let qrDataUrl = '';
+  try {
+    if (typeof QRious === 'function') {
       const qrCanvas = document.createElement('canvas');
       new QRious({ element: qrCanvas, value: url.toString(), size: 120, level: 'H' });
-      const qrDataUrl = qrCanvas.toDataURL('image/png');
+      qrDataUrl = qrCanvas.toDataURL('image/png');
+    }
+  } catch (e) {
+    console.warn('QR-generering misslyckades:', e);
+  }
 
-      const w = window.open('', '_blank', 'noopener,noreferrer');
-      if (!w) { alert('Popup blockerad. Tillåt popup för denna sida.'); return; }
-
-      // Utskriftsvänlig HTML – Titel kursiv
-      w.document.write(`<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Skylt ${vg}</title>
 <style>
-  @page { size: A6 portrait; margin: 12mm; } /* ändra vid behov, t.ex. A5/A4 */
+  @page { size: A6 portrait; margin: 12mm; }
   html,body { height:100%; }
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111; margin:0; }
-  .skylt {
-    position: relative;
-    display: grid;
-    gap: 6px;
-    line-height: 1.25;
-  }
+  .skylt { position: relative; display: grid; gap: 6px; line-height: 1.25; }
   .artist { font-size: 1.15rem; font-weight: 700; }
   .title  { font-size: 1.05rem; font-style: italic; }
   .year   { font-size: 1rem; color:#333; }
-  .qr {
-    position: absolute;
-    top: 0; right: 0;
-    width: 90px; height: 90px;
-  }
+  .qr { position: absolute; top: 0; right: 0; width: 90px; height: 90px; object-fit: contain; }
+  .qr-fallback { position:absolute; top:0; right:0; width:90px; height:90px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; font: 700 12px/1 system-ui; color:#333; background:#fff; }
   .meta { margin-top: 8px; font-size: .8rem; color:#555; }
   @media print { .printbtn { display: none; } }
+</style>
+</head>
+<body>
+  <div class="skylt">
+    ${qrDataUrl
+      ? `<img class="qr" alt="QR-kod" src="${qrDataUrl}">`
+      : `<div class="qr-fallback">QR</div>`}
+    <div class="artist">${artist ? artist.replace(/</g,'&lt;') : ''}</div>
+    <div class="title">${title ? title.replace(/</g,'&lt;') : ''}</div>
+    <div class="year">${year ? year.replace(/</g,'&lt;') : ''}</div>
+    <div class="meta">VG-nummer: ${vg}</div>
+  </div>
+  <button class="printbtn" onclick="print()">Skriv ut</button>
+</body>
+</html>`;
+
+  // Öppna popup – OBS: utan "noopener,noreferrer"
+  const w = window.open('about:blank', '_blank');
+  if (!w) { alert('Popup blockerad. Tillåt popup för denna sida.'); return; }
+
+  try {
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  } catch (e) {
+    // Fallback: ladda HTML via blob-URL om write blockeras
+    console.warn('document.write blockerat, använder blob-fallback:', e);
+    const blob = new Blob([html], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+    w.location.replace(blobUrl);
+  }
+}
+
 </style>
 </head>
 <body>
