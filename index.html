@@ -361,7 +361,7 @@
           const has = raw.length > 0;
           const preview = has ? ` — ${raw.split('\n')[0].slice(0, 60)}` : '';
           const titleAttr = has
-            ? ` title="${raw.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`
+            ? ` title="${raw.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"'
             : '';
           return `<span class="sel-item" data-id="${id}"${titleAttr}>
             ${id}${has ? ' 📌' : ''}<span style="font-weight:400;opacity:.85;">${preview}</span>
@@ -494,7 +494,7 @@
       }
     }
 
-    // ======= Skylt-popup med QR-kod (robust) =======
+    // ======= Skylt-popup med QR-kod (Arial, 85×54 mm, QR nere till höger) =======
     function openSkylt(entry) {
       const artist = (entry.creator || '').toString();
       const title  = (entry.title  || '').toString();
@@ -511,7 +511,7 @@
       const url  = new URL(base);
       url.searchParams.set('id', vg);
 
-      // Skapa QR som data-URL (fallback om QRious saknas)
+      // Skapa QR som data-URL
       let qrDataUrl = '';
       try {
         if (typeof QRious === 'function') {
@@ -532,16 +532,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Skylt ${vg}</title>
 <style>
-  @page { size: A6 portrait; margin: 12mm; }
-  html,body { height:100%; }
-  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111; margin:0; }
-  .skylt { position: relative; display: grid; gap: 6px; line-height: 1.25; }
+  @page { size: 85mm 54mm; margin: 4mm; }
+  html,body { height:100%; margin:0; }
+  body { font-family: Arial, sans-serif; color:#111; }
+  .skylt {
+    position: relative;
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    gap: 6px;
+    line-height:1.25;
+  }
   .artist { font-size: 1.15rem; font-weight: 700; }
   .title  { font-size: 1.05rem; font-style: italic; }
   .year   { font-size: 1rem; color:#333; }
-  .qr { position: absolute; top: 0; right: 0; width: 90px; height: 90px; object-fit: contain; }
-  .qr-fallback { position:absolute; top:0; right:0; width:90px; height:90px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; font: 700 12px/1 system-ui; color:#333; background:#fff; }
-  .meta { margin-top: 8px; font-size: .8rem; color:#555; }
+  .meta   { margin-top: 4px; font-size: .8rem; color:#555; }
+
+  /* QR i nedre högra hörnet */
+  .qr { position: absolute; bottom: 0; right: 0; width: 80px; height: 80px; object-fit: contain; }
+  .qr-fallback {
+    position:absolute; bottom:0; right:0; width:80px; height:80px;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid #ccc; font: 700 12px/1 Arial, sans-serif; color:#333; background:#fff;
+  }
+
   @media print { .printbtn { display: none; } }
 </style>
 </head>
