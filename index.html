@@ -131,7 +131,7 @@
   <script>
     // ======= Konfiguration =======
     const datasetBaseURL = 'https://vgregion.entryscape.net/rowstore/dataset/1802e57a-b25d-4716-8437-9ed648bbae59';
-    const BOM_OLDER_ID_KEY = '\\uFEFFolder id';
+    const BOM_OLDER_ID_KEY = '\uFEFFolder id';
 
     const columnsOrder = ["creator","title","created","artform","artmedium","id",BOM_OLDER_ID_KEY];
     const columnsMap = {
@@ -168,14 +168,14 @@
       const cleaned = list
         .map(s => (s || '').toString().trim())
         .filter(Boolean)
-        .map(s => s === 'collage' ? 'Collage' : s.replace(/\\s+/g,' '));
+        .map(s => s === 'collage' ? 'Collage' : s.replace(/\s+/g,' '));
       const uniq = [...new Set(cleaned)];
       return uniq.sort((a,b) => a.localeCompare(b,'sv'));
     }
     const ART_MEDIA = uniqueSorted(ART_MEDIA_RAW);
 
     function populateSelect(el, options, labelAll){
-      el.innerHTML = \`<option value="">\${labelAll}</option>\`;
+      el.innerHTML = `<option value="">${labelAll}</option>`;
       options.forEach(v=>{
         const opt = document.createElement('option');
         opt.value = v;
@@ -185,19 +185,19 @@
     }
 
     // ======= Hjälpfunktioner =======
-    const removeAccents = (str) => str.normalize("NFD").replace(/\\p{Diacritic}/gu,"").toLowerCase();
-    const capitalizeWords = (str) => str.replace(/(^|\\s)\\S/g, c => c.toLocaleUpperCase('sv-SE'));
+    const removeAccents = (str) => str.normalize("NFD").replace(/\p{Diacritic}/gu,"").toLowerCase();
+    const capitalizeWords = (str) => str.replace(/(^|\s)\S/g, c => c.toLocaleUpperCase('sv-SE'));
     const normalizeText = (str) => str.normalize("NFC").trim();
     function normalizeOlderIdInput(input){
       input = normalizeText(input);
       if(!input) return '';
-      if(/^\\d+\\s*[a-zA-Z]$/.test(input)){ return input.replace(/\\s*([a-zA-Z])$/,(_,L)=>' '+L.toUpperCase()); }
-      const m = input.match(/^(\\d+)([a-zA-Z])$/);
+      if(/^\d+\s*[a-zA-Z]$/.test(input)){ return input.replace(/\s*([a-zA-Z])$/,(_,L)=>' '+L.toUpperCase()); }
+      const m = input.match(/^(\d+)([a-zA-Z])$/);
       return m ? m[1] + ' ' + m[2].toUpperCase() : input;
     }
     function cleanDataKeys(dataArray){
       return dataArray.map(item=>{
-        const n={}; for(const k in item){ n[k.replace(/^\\uFEFF/,'')] = item[k]; } return n;
+        const n={}; for(const k in item){ n[k.replace(/^\uFEFF/,'')] = item[k]; } return n;
       });
     }
 
@@ -229,7 +229,7 @@
       const url = datasetBaseURL + buildQuery(params);
       try{
         const res = await fetch(url, {headers:{accept:'application/json'}});
-        if(!res.ok) throw new Error(\`HTTP-fel: \${res.status}\`);
+        if(!res.ok) throw new Error(`HTTP-fel: ${res.status}`);
         const json = await res.json();
         allData = cleanDataKeys(json.results || []);
 
@@ -276,7 +276,7 @@
     function saveSelection(){ localStorage.setItem(SEL_KEY, JSON.stringify(selection)); }
     function selectionSize(){ return Object.keys(selection).length; }
     function hasSelection(id){ return !!selection[String(id||'').toUpperCase()]; }
-    function isVG(s) { return /^VG\\d+$/i.test(String(s || '')); }
+    function isVG(s) { return /^VG\d+$/i.test(String(s || '')); }
 
     function promptAndNormalizeNote(def = ''){
       const n = prompt('Anteckning (valfritt):', def ?? '');
@@ -287,7 +287,7 @@
       const id = String(entry?.id || entry || '').toUpperCase();
       if (!isVG(id)) return;
       if (!hasSelection(id) && selectionSize() >= SEL_LIMIT) {
-        alert(\`Max \${SEL_LIMIT} i urvalet.\`);
+        alert(`Max ${SEL_LIMIT} i urvalet.`);
         return;
       }
       const olderKey = 'older id';
@@ -324,7 +324,7 @@
 
     function updateSelectionUI() {
       const el = document.getElementById('selectionCount');
-      if (el) el.textContent = \`Urval: \${selectionSize()}\`;
+      if (el) el.textContent = `Urval: ${selectionSize()}`;
 
       // Uppdatera knapparnas text i synliga kort + notisrad
       document.querySelectorAll('.card[data-vg]').forEach(card => {
@@ -335,7 +335,7 @@
         const noteTxt = (selection[id]?.note || '').trim();
         btn.textContent = selected ? 'Ta bort från urval' : 'Lägg till i urval';
         btn.setAttribute('aria-pressed', String(selected));
-        btn.title = selected && noteTxt ? \`Anteckning: \${noteTxt}\` : (isVG(id) ? \`Lägg till/ta bort \${id} från urval\` : 'Denna rad saknar giltigt VG-nummer');
+        btn.title = selected && noteTxt ? `Anteckning: ${noteTxt}` : (isVG(id) ? `Lägg till/ta bort ${id} från urval` : 'Denna rad saknar giltigt VG-nummer');
         card.classList.toggle('selected', selected);
 
         // liten rad med anteckningen i kortet när valt
@@ -346,7 +346,7 @@
             nl.className = 'note-line';
             card.appendChild(nl);
           }
-          nl.textContent = \`Anteckning: \${noteTxt}\`;
+          nl.textContent = `Anteckning: ${noteTxt}`;
         } else if (nl) {
           nl.remove();
         }
@@ -359,21 +359,21 @@
         list.innerHTML = ids.map(id => {
           const raw = (selection[id]?.note || '').trim();
           const has = raw.length > 0;
-          const preview = has ? \` — \${raw.split('\\n')[0].slice(0, 60)}\` : '';
+          const preview = has ? ` — ${raw.split('\n')[0].slice(0, 60)}` : '';
           const titleAttr = has
-            ? \` title="\${raw.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"\`
+            ? ` title="${raw.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"'
             : '';
-          return \`<span class="sel-item" data-id="\${id}"\${titleAttr}>
-            \${id}\${has ? ' 📌' : ''}<span style="font-weight:400;opacity:.85;">\${preview}</span>
-            <button type="button" data-edit="\${id}" title="Redigera anteckning">✎</button>
-            <button type="button" data-remove="\${id}" title="Ta bort \${id}">×</button>
-          </span>\`;
+          return `<span class="sel-item" data-id="${id}"${titleAttr}>
+            ${id}${has ? ' 📌' : ''}<span style="font-weight:400;opacity:.85;">${preview}</span>
+            <button type="button" data-edit="${id}" title="Redigera anteckning">✎</button>
+            <button type="button" data-remove="${id}" title="Ta bort ${id}">×</button>
+          </span>`;
         }).join('');
 
         // Uppdatera summary-text
         const details = document.getElementById('selectionDetails');
         const summary = details?.querySelector('summary');
-        if (summary) summary.textContent = selectionSize() ? \`Visa urval (\${selectionSize()})\` : 'Visa urval';
+        if (summary) summary.textContent = selectionSize() ? `Visa urval (${selectionSize()})` : 'Visa urval';
       }
     }
 
@@ -408,18 +408,18 @@
       const blocks = ids.map(id => {
         const item = selection[id] || {}; const d = item.data || {};
         return [
-          \`Konstnär: \${d.creator || ''}\`,
-          \`Titel: \${d.title || ''}\`,
-          \`Framställningsår: \${d.created || ''}\`,
-          \`Konsttyp: \${d.artform || ''}\`,
-          \`Teknik: \${d.artmedium || ''}\`,
-          \`VG-nummer: \${id}\`,
-          \`Äldre id: \${d['older id'] || ''}\`,
-          \`Anteckning: \${item.note || ''}\`
-        ].join('\\n');
+          `Konstnär: ${d.creator || ''}`,
+          `Titel: ${d.title || ''}`,
+          `Framställningsår: ${d.created || ''}`,
+          `Konsttyp: ${d.artform || ''}`,
+          `Teknik: ${d.artmedium || ''}`,
+          `VG-nummer: ${id}`,
+          `Äldre id: ${d['older id'] || ''}`,
+          `Anteckning: ${item.note || ''}`
+        ].join('\n');
       });
-      const quoted = ids.map(id => \`"\${id}"\`).join(', ');
-      return blocks.join('\\n\\n') + \`\\n\\n\${quoted}\`;
+      const quoted = ids.map(id => `"${id}"`).join(', ');
+      return blocks.join('\n\n') + `\n\n${quoted}`;
     }
 
     async function copySelectionToClipboard() {
@@ -436,15 +436,15 @@
     }
 
     function openEmailComposeWith(text) {
-      const defaultSubject = \`Urval – VGR konst (\${new Date().toLocaleDateString('sv-SE')})\`;
+      const defaultSubject = `Urval – VGR konst (${new Date().toLocaleDateString('sv-SE')})`;
       const subject = prompt('Ämne för e-posten:', defaultSubject);
       if (subject === null) return; // avbrutet
 
       const encSubject = encodeURIComponent(subject.trim());
       const encBody = encodeURIComponent(text);
 
-      const outlookUrl = \`ms-outlook://compose?subject=\${encSubject}&body=\${encBody}\`;
-      const mailtoUrl  = \`mailto:?subject=\${encSubject}&body=\${encBody}\`;
+      const outlookUrl = `ms-outlook://compose?subject=${encSubject}&body=${encBody}`;
+      const mailtoUrl  = `mailto:?subject=${encSubject}&body=${encBody}`;
 
       let opened = false;
       const timer = setTimeout(() => {
@@ -490,18 +490,18 @@
       if (addedCount === 0) {
         alert('Inga nya VG-nummer lades till (antingen redan i urvalet eller urvalet är fullt).');
       } else {
-        alert(\`La till \${addedCount} VG-nummer från sökningen i urvalet.\`);
+        alert(`La till ${addedCount} VG-nummer från sökningen i urvalet.`);
       }
     }
 
-    // ======= Skylt-popup (Arial, 85×54 mm, QR nere till höger, text över, logga under) =======
+    // ======= Skylt-popup med QR-kod (Arial, 85×54 mm, QR nere till höger) =======
     function openSkylt(entry) {
       const artist = (entry.creator || '').toString();
       const title  = (entry.title  || '').toString();
       const year   = (entry.created|| '').toString();
       const vg     = (entry.id     || '').toString().toUpperCase();
 
-      if (!/^VG\\d+$/i.test(vg)) {
+      if (!/^VG\d+$/i.test(vg)) {
         alert('Saknar giltigt VG-nummer.');
         return;
       }
@@ -523,10 +523,6 @@
         console.warn('QR-generering misslyckades:', e);
       }
 
-      // --- LOGO ---
-      // OBS! Webbläsare visar inte EPS. Konvertera EPS -> PNG/SVG och peka på filen här:
-      const logoSrc = encodeURI('Lång VGR logotyp svart cmyk.png'); // ändra om din fil heter/ligger annorlunda
-
       const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
 
       const html = `<!DOCTYPE html>
@@ -541,9 +537,12 @@
   body { font-family: Arial, sans-serif; color:#111; }
   .skylt {
     position: relative;
-    width:100%; height:100%;
-    display:flex; flex-direction:column;
-    justify-content:flex-start; gap:6px;
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    gap: 6px;
     line-height:1.25;
   }
   .artist { font-size: 1.15rem; font-weight: 700; }
@@ -551,32 +550,12 @@
   .year   { font-size: 1rem; color:#333; }
   .meta   { margin-top: 4px; font-size: .8rem; color:#555; }
 
-  /* QR-container nere till höger med text över och logga under */
-  .qr-wrap {
-    position: absolute; bottom: 0; right: 0;
-    display:flex; flex-direction:column; align-items:center;
-    width: 92px;
-  }
-  .qr-text {
-    font-size: 0.65rem;
-    text-align:center;
-    margin-bottom:2px;
-    color:#333;
-  }
-  .qr {
-    width:80px; height:80px; object-fit:contain;
-  }
+  /* QR i nedre högra hörnet */
+  .qr { position: absolute; bottom: 0; right: 0; width: 80px; height: 80px; object-fit: contain; }
   .qr-fallback {
-    width:80px; height:80px;
+    position:absolute; bottom:0; right:0; width:80px; height:80px;
     display:flex; align-items:center; justify-content:center;
-    border:1px solid #ccc;
-    font: 700 12px/1 Arial, sans-serif;
-    color:#333; background:#fff;
-  }
-  .logo {
-    margin-top:2px;
-    width:80px; /* justera vid behov */
-    height:auto;
+    border:1px solid #ccc; font: 700 12px/1 Arial, sans-serif; color:#333; background:#fff;
   }
 
   @media print { .printbtn { display: none; } }
@@ -584,18 +563,13 @@
 </head>
 <body>
   <div class="skylt">
+    ${qrDataUrl
+      ? `<img class="qr" alt="QR-kod" src="${qrDataUrl}">`
+      : `<div class="qr-fallback" aria-label="QR-kod saknas">QR</div>`}
     <div class="artist">${esc(artist)}</div>
     <div class="title">${esc(title)}</div>
     <div class="year">${esc(year)}</div>
     <div class="meta">VG-nummer: ${esc(vg)}</div>
-
-    <div class="qr-wrap">
-      <div class="qr-text">Skanna QR-kod för mer information</div>
-      ${qrDataUrl
-        ? `<img class="qr" alt="QR-kod" src="${qrDataUrl}">`
-        : `<div class="qr-fallback" aria-label="QR-kod saknas">QR</div>`}
-      <img class="logo" src="${logoSrc}" alt="VGR logotyp" onerror="this.style.display='none'">
-    </div>
   </div>
   <button class="printbtn" onclick="print()">Skriv ut</button>
 </body>
@@ -634,7 +608,7 @@
       }
 
       empty.hidden=true;
-      total.textContent = data.length >= 100 ? 'Totalt ≥100 resultat (visar max 100)' : \`Totalt \${data.length} resultat\`;
+      total.textContent = data.length >= 100 ? 'Totalt ≥100 resultat (visar max 100)' : `Totalt ${data.length} resultat`;
 
       const frag = document.createDocumentFragment();
       data.forEach(row=>{
@@ -649,7 +623,7 @@
         kv.className='kv';
 
         columnsOrder.forEach(col=>{
-          const key = col.replace(/^\\uFEFF/,'');
+          const key = col.replace(/^\uFEFF/,'');
           let val = row[key] ?? '';
           if(key==='id' && typeof val==='string') val = val.toUpperCase();
 
@@ -671,7 +645,7 @@
         btn.type = 'button';
         const existingNote = (selection[vg]?.note || '').trim();
         btn.title = isVG(vg)
-          ? (existingNote ? \`Anteckning: \${existingNote}\` : \`Lägg till/ta bort \${vg} från urval\`)
+          ? (existingNote ? `Anteckning: ${existingNote}` : `Lägg till/ta bort ${vg} från urval`)
           : 'Denna rad saknar giltigt VG-nummer';
         const selected = hasSelection(vg);
         btn.textContent = selected ? 'Ta bort från urval' : 'Lägg till i urval';
@@ -714,7 +688,7 @@
       e.preventDefault();
       const params={}, raw={};
       for(const key in columnsMap){
-        const cleanKey = key.replace(/^\\uFEFF/,'');
+        const cleanKey = key.replace(/^\uFEFF/,'');
         const el = document.getElementById(inputIdMap[key]);
         if(el){
           let val = normalizeText(el.value);
