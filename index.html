@@ -257,13 +257,11 @@
     const SEL_KEY = 'vgr_konst_selection';
     const SEL_LIMIT = 300;
 
-    // selection som objekt: { VGID: { note: string, data: {...} } }
     let selection = (()=>{
       try{
         const raw = localStorage.getItem(SEL_KEY);
         const parsed = raw ? JSON.parse(raw) : null;
         if(Array.isArray(parsed)){
-          // Migrera från gammalt Set-format (bara id:n)
           const obj = {};
           parsed.forEach(id=>{ obj[String(id).toUpperCase()] = { note:'', data:null }; });
           localStorage.setItem(SEL_KEY, JSON.stringify(obj));
@@ -317,7 +315,7 @@
         removeFromSelection(id);
       } else {
         const note = promptAndNormalizeNote('');
-        if (note === null) return; // avbruten
+        if (note === null) return;
         addToSelection(entry, note);
       }
     }
@@ -326,7 +324,6 @@
       const el = document.getElementById('selectionCount');
       if (el) el.textContent = `Urval: ${selectionSize()}`;
 
-      // Uppdatera knapparnas text i synliga kort + notisrad
       document.querySelectorAll('.card[data-vg]').forEach(card => {
         const id = card.getAttribute('data-vg') || '';
         const btn = card.querySelector('.add-btn');
@@ -338,7 +335,6 @@
         btn.title = selected && noteTxt ? `Anteckning: ${noteTxt}` : (isVG(id) ? `Lägg till/ta bort ${id} från urval` : 'Denna rad saknar giltigt VG-nummer');
         card.classList.toggle('selected', selected);
 
-        // liten rad med anteckningen i kortet när valt
         let nl = card.querySelector('.note-line');
         if (selected && noteTxt) {
           if (!nl) {
@@ -352,7 +348,6 @@
         }
       });
 
-      // Rita expanderbar lista
       const list = document.getElementById('selectionList');
       if (list) {
         const ids = Object.keys(selection).sort((a,b)=>a.localeCompare(b,'sv',{numeric:true}));
@@ -370,14 +365,12 @@
           </span>`;
         }).join('');
 
-        // Uppdatera summary-text
         const details = document.getElementById('selectionDetails');
         const summary = details?.querySelector('summary');
         if (summary) summary.textContent = selectionSize() ? `Visa urval (${selectionSize()})` : 'Visa urval';
       }
     }
 
-    // ✕/✎ i urvalslistan
     document.getElementById('selectionList')?.addEventListener('click', (e) => {
       const btn = e.target.closest('button');
       if (!btn) return;
@@ -389,8 +382,8 @@
 
       if (btn.dataset.edit) {
         const id = btn.dataset.edit;
-        thecurrent = (selection[id]?.note || '').trim();
-        const note = promptAndNormalizeNote(thecurrent);
+        const current = (selection[id]?.note || '').trim();
+        const note = promptAndNormalizeNote(current);
         if (note !== null) {
           selection[id] = selection[id] || { note:'', data:null };
           selection[id].note = note;
@@ -438,7 +431,7 @@
     function openEmailComposeWith(text) {
       const defaultSubject = `Urval – VGR konst (${new Date().toLocaleDateString('sv-SE')})`;
       const subject = prompt('Ämne för e-posten:', defaultSubject);
-      if (subject === null) return; // avbrutet
+      if (subject === null) return;
 
       const encSubject = encodeURIComponent(subject.trim());
       const encBody = encodeURIComponent(text);
@@ -494,7 +487,7 @@
       }
     }
 
-    // ======= Skylt-popup: 85×54 mm, logga nere vänster, QR nere höger, ingen VG-rad =======
+    // ======= Skylt-popup: 85×54 mm, snygg förhandsvisning + korrekt print =======
     function openSkylt(entry) {
       const artist = (entry.creator || '').toString();
       const title  = (entry.title  || '').toString();
@@ -511,7 +504,7 @@
       const url  = new URL(base);
       url.searchParams.set('id', vg);
 
-      // Skapa QR som data-URL
+      // Skapa QR som data-URL (hög upplösning för skarp tryck)
       let qrDataUrl = '';
       try {
         if (typeof QRious === 'function') {
@@ -532,21 +525,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Skylt ${vg}</title>
 <style>
+  /* Exakt pappersstorlek */
   @page { size: 85mm 54mm; margin: 4mm; }
-  html,body { height:100%; }
-  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111; margin:0; }
 
-  /* Layout: topptext + flexad bottenrad (logga vänster, QR höger) */
-  .skylt {
+  /* Snygg, centrerad förhandsvisning på skärm */
+  html, body {
     height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eee;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:#111;
+  }
+
+  /* Kortytan: lika stor som pappret i skärmvy */
+  .skylt {
+    background: #fff;
+    box-shadow: 0 0 8px rgba(0,0,0,.15);
+    width: 85mm;
+    height: 54mm;
+    padding: 4mm;                       
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr auto;  
     row-gap: 2mm;
   }
 
-  .content {
-    padding-right: 2mm;   /* lite luft mot högerkant */
-  }
+  .content { padding-right: 2mm; }      
 
   /* Tryckvänliga textstorlekar (pt) */
   .artist { font: 700 11pt/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
@@ -559,32 +565,36 @@
     justify-content:space-between;
   }
 
-  /* Använd mm för verklig utskriftsstorlek */
+  /* Storlekar i mm för pålitlig utskrift */
   .logo { width: 23mm; height:auto; object-fit:contain; }
-  .qr { width: 20mm; height: 20mm; object-fit:contain; }
+  .qr   { width: 20mm; height: 20mm; object-fit:contain; }
 
-  /* Fallback när QR inte kan genereras */
   .qr-fallback {
     width: 20mm; height: 20mm;
     display:flex; align-items:center; justify-content:center;
     border: 0.2mm solid #999; font: 700 7pt/1 system-ui; color:#333; background:#fff;
   }
 
-  @media print { .printbtn { display:none; } }
+  /* Utskrift: ta bort skugga/ram, låt @page styra marginal */
+  @media print {
+    html, body { display:block; background:none; }
+    .skylt { box-shadow:none; width:auto; height:auto; padding:0; }
+    .printbtn { display:none; }
+  }
 </style>
 </head>
 <body>
-  <div class="skylt">
+  <div class="skylt" role="article" aria-label="Konstskylt">
     <div class="content">
       <div class="artist">${esc(artist)}</div>
       <div class="title">${esc(title)}</div>
       ${year ? `<div class="year">${esc(year)}</div>` : ``}
     </div>
 
-    <div></div> <!-- flexspacer via grid-row: 1fr -->
+    <div></div> <!-- spacer -->
 
     <div class="footer">
-      <img class="logo" src="vgr_logotyp.png" alt="VGR logotyp">
+      <img class="logo" src="vgr_logotyp.png" alt="Västra Götalandsregionen">
       ${qrDataUrl
         ? `<img class="qr" alt="QR-kod" src="${qrDataUrl}">`
         : `<div class="qr-fallback" aria-label="QR-kod saknas">QR</div>`}
