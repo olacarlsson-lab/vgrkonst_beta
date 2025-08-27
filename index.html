@@ -360,9 +360,9 @@
           const raw = (selection[id]?.note || '').trim();
           const has = raw.length > 0;
           const preview = has ? ` — ${raw.split('\n')[0].slice(0, 60)}` : '';
-          const titleAttr = has
-            ? ` title="${raw.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"'
-            : '';
+           const titleAttr = has
+        ? ` title="${raw.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`
+        : '';
           return `<span class="sel-item" data-id="${id}"${titleAttr}>
             ${id}${has ? ' 📌' : ''}<span style="font-weight:400;opacity:.85;">${preview}</span>
             <button type="button" data-edit="${id}" title="Redigera anteckning">✎</button>
