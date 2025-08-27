@@ -389,8 +389,8 @@
 
       if (btn.dataset.edit) {
         const id = btn.dataset.edit;
-        const current = (selection[id]?.note || '').trim();
-        const note = promptAndNormalizeNote(current);
+        thecurrent = (selection[id]?.note || '').trim();
+        const note = promptAndNormalizeNote(thecurrent);
         if (note !== null) {
           selection[id] = selection[id] || { note:'', data:null };
           selection[id].note = note;
@@ -494,7 +494,7 @@
       }
     }
 
-    // ======= Skylt-popup med QR-kod och VGR-logga (QR nere höger, logga nere vänster) =======
+    // ======= Skylt-popup: 85×54 mm, logga nere vänster, QR nere höger, ingen VG-rad =======
     function openSkylt(entry) {
       const artist = (entry.creator || '').toString();
       const title  = (entry.title  || '').toString();
@@ -511,12 +511,12 @@
       const url  = new URL(base);
       url.searchParams.set('id', vg);
 
-      // Skapa QR som data-URL (fallback om QRious saknas)
+      // Skapa QR som data-URL
       let qrDataUrl = '';
       try {
         if (typeof QRious === 'function') {
           const qrCanvas = document.createElement('canvas');
-          new QRious({ element: qrCanvas, value: url.toString(), size: 120, level: 'H' });
+          new QRious({ element: qrCanvas, value: url.toString(), size: 300, level: 'H' });
           qrDataUrl = qrCanvas.toDataURL('image/png');
         }
       } catch (e) {
@@ -532,39 +532,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Skylt ${vg}</title>
 <style>
-@page { size: 85mm 54mm; margin: 5mm; }
-html,body { height:100%; }
-body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111; margin:0; }
-.skylt { position: relative; display: grid; gap: 4px; line-height: 1.2; padding-bottom: 55px; }
+  @page { size: 85mm 54mm; margin: 4mm; }
+  html,body { height:100%; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111; margin:0; }
 
-.artist { font-size: 0.95rem; font-weight: 700; }
-.title  { font-size: 0.85rem; font-style: italic; }
-.year   { font-size: 0.8rem; color:#333; }
-.meta   { margin-top: 4px; font-size: 0.75rem; color:#555; }
+  /* Layout: topptext + flexad bottenrad (logga vänster, QR höger) */
+  .skylt {
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    row-gap: 2mm;
+  }
 
-.qr { position: absolute; bottom: 0; right: 0; width: 70px; height: 70px; object-fit: contain; }
-.qr-fallback { position:absolute; bottom:0; right:0; width:65px; height:65px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; font: 700 11px/1 system-ui; color:#333; background:#fff; }
+  .content {
+    padding-right: 2mm;   /* lite luft mot högerkant */
+  }
 
-.logo { position:absolute; bottom:0; left:0; width:95px; height:auto; object-fit:contain; }
-  .meta { margin-top: 8px; font-size: .8rem; color:#555; }
-  @media print { .printbtn { display: none; } }
+  /* Tryckvänliga textstorlekar (pt) */
+  .artist { font: 700 11pt/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  .title  { font: italic 9.5pt/1.25 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  .year   { font: 8.5pt/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#333; margin-top: 1mm; }
+
+  .footer {
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+  }
+
+  /* Använd mm för verklig utskriftsstorlek */
+  .logo { width: 23mm; height:auto; object-fit:contain; }
+  .qr { width: 20mm; height: 20mm; object-fit:contain; }
+
+  /* Fallback när QR inte kan genereras */
+  .qr-fallback {
+    width: 20mm; height: 20mm;
+    display:flex; align-items:center; justify-content:center;
+    border: 0.2mm solid #999; font: 700 7pt/1 system-ui; color:#333; background:#fff;
+  }
+
+  @media print { .printbtn { display:none; } }
 </style>
 </head>
 <body>
   <div class="skylt">
-    ${qrDataUrl
-      ? `<img class="qr" alt="QR-kod" src="${qrDataUrl}">`
-      : `<div class="qr-fallback" aria-label="QR-kod saknas">QR</div>`}
-    <img class="logo" src="vgr_logotyp.png" alt="VGR logotyp">
-    <div class="artist">${esc(artist)}</div>
-    <div class="title">${esc(title)}</div>
-    <div class="year">${esc(year)}</div>
+    <div class="content">
+      <div class="artist">${esc(artist)}</div>
+      <div class="title">${esc(title)}</div>
+      ${year ? `<div class="year">${esc(year)}</div>` : ``}
+    </div>
+
+    <div></div> <!-- flexspacer via grid-row: 1fr -->
+
+    <div class="footer">
+      <img class="logo" src="vgr_logotyp.png" alt="VGR logotyp">
+      ${qrDataUrl
+        ? `<img class="qr" alt="QR-kod" src="${qrDataUrl}">`
+        : `<div class="qr-fallback" aria-label="QR-kod saknas">QR</div>`}
+    </div>
   </div>
   <button class="printbtn" onclick="print()">Skriv ut</button>
 </body>
 </html>`;
 
-      // Öppna popup utan "noopener,noreferrer" och med write-fallback
       const w = window.open('about:blank', '_blank');
       if (!w) { alert('Popup blockerad. Tillåt popup för denna sida.'); return; }
 
@@ -604,7 +633,6 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
         const card = document.createElement('div');
         card.className='card';
 
-        // VG-id som uppercase (kan saknas i enstaka rader)
         const vg = (row['id'] || '').toString().toUpperCase();
         if (isVG(vg)) card.setAttribute('data-vg', vg);
 
@@ -628,7 +656,6 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
           kv.appendChild(v);
         });
 
-        // Lägg till/ta bort-knapp
         const btn = document.createElement('button');
         btn.className = 'add-btn';
         btn.type = 'button';
@@ -648,7 +675,6 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
           toggleSelection({ ...row, id: vg });
         });
 
-        // Skylt-knapp
         const skyltBtn = document.createElement('button');
         skyltBtn.type = 'button';
         skyltBtn.textContent = 'Skylt';
@@ -716,12 +742,10 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-seri
 
     (()=>{
       const urlParams = paramsFromURL();
-      // förifyll inputs
       for (const key in urlParams) {
         const el = document.getElementById(inputIdMap[key] || "");
         if (el) el.value = urlParams[key];
       }
-      // kör sökning om något finns, annars standard
       if (Object.keys(urlParams).length) {
         fetchData(urlParams, urlParams).then(updateSelectionUI);
       } else {
