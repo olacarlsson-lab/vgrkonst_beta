@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="theme-color" content="#0077cc" />
 
-  <!-- QR-bibliotek för att generera QR-koder -->
+  <!-- QR-bibliotek -->
   <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 
   <style>
@@ -453,7 +453,7 @@
 
       try {
         window.location.href = outlookUrl;
-        opened = true; // vi antar lyckat; fallback tar över om protokoll saknas
+        opened = true;
       } catch (e) {
         clearTimeout(timer);
         window.location.href = mailtoUrl;
@@ -465,7 +465,6 @@
       if (!text) { alert('Urvalet är tomt.'); return; }
 
       const copied = await copySelectionToClipboard();
-      // Fråga om mail
       const goMail = confirm(copied
         ? 'Urvalet är kopierat. Vill du öppna e-post med urvalet inklistrat?'
         : 'Vill du öppna e-post med urvalet ändå?');
@@ -495,36 +494,38 @@
       }
     }
 
-    // ======= Skylt-popup med QR-kod =======
-function openSkylt(entry) {
-  const artist = (entry.creator || '').toString();
-  const title  = (entry.title  || '').toString();
-  const year   = (entry.created|| '').toString();
-  const vg     = (entry.id     || '').toString().toUpperCase();
+    // ======= Skylt-popup med QR-kod (robust) =======
+    function openSkylt(entry) {
+      const artist = (entry.creator || '').toString();
+      const title  = (entry.title  || '').toString();
+      const year   = (entry.created|| '').toString();
+      const vg     = (entry.id     || '').toString().toUpperCase();
 
-  if (!/^VG\d+$/i.test(vg)) {
-    alert('Saknar giltigt VG-nummer.');
-    return;
-  }
+      if (!/^VG\d+$/i.test(vg)) {
+        alert('Saknar giltigt VG-nummer.');
+        return;
+      }
 
-  // URL som QR ska peka på (samma sida + id-parameter)
-  const base = location.origin + location.pathname;
-  const url  = new URL(base);
-  url.searchParams.set('id', vg);
+      // Länk som QR pekar på (samma sida + id-parameter)
+      const base = location.origin + location.pathname;
+      const url  = new URL(base);
+      url.searchParams.set('id', vg);
 
-  // Skapa QR som data-URL (fallback om QRious saknas)
-  let qrDataUrl = '';
-  try {
-    if (typeof QRious === 'function') {
-      const qrCanvas = document.createElement('canvas');
-      new QRious({ element: qrCanvas, value: url.toString(), size: 120, level: 'H' });
-      qrDataUrl = qrCanvas.toDataURL('image/png');
-    }
-  } catch (e) {
-    console.warn('QR-generering misslyckades:', e);
-  }
+      // Skapa QR som data-URL (fallback om QRious saknas)
+      let qrDataUrl = '';
+      try {
+        if (typeof QRious === 'function') {
+          const qrCanvas = document.createElement('canvas');
+          new QRious({ element: qrCanvas, value: url.toString(), size: 120, level: 'H' });
+          qrDataUrl = qrCanvas.toDataURL('image/png');
+        }
+      } catch (e) {
+        console.warn('QR-generering misslyckades:', e);
+      }
 
-  const html = `<!DOCTYPE html>
+      const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+      const html = `<!DOCTYPE html>
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
@@ -548,47 +549,30 @@ function openSkylt(entry) {
   <div class="skylt">
     ${qrDataUrl
       ? `<img class="qr" alt="QR-kod" src="${qrDataUrl}">`
-      : `<div class="qr-fallback">QR</div>`}
-    <div class="artist">${artist ? artist.replace(/</g,'&lt;') : ''}</div>
-    <div class="title">${title ? title.replace(/</g,'&lt;') : ''}</div>
-    <div class="year">${year ? year.replace(/</g,'&lt;') : ''}</div>
-    <div class="meta">VG-nummer: ${vg}</div>
+      : `<div class="qr-fallback" aria-label="QR-kod saknas">QR</div>`}
+    <div class="artist">${esc(artist)}</div>
+    <div class="title">${esc(title)}</div>
+    <div class="year">${esc(year)}</div>
+    <div class="meta">VG-nummer: ${esc(vg)}</div>
   </div>
   <button class="printbtn" onclick="print()">Skriv ut</button>
 </body>
 </html>`;
 
-  // Öppna popup – OBS: utan "noopener,noreferrer"
-  const w = window.open('about:blank', '_blank');
-  if (!w) { alert('Popup blockerad. Tillåt popup för denna sida.'); return; }
+      // Öppna popup utan "noopener,noreferrer" och med write-fallback
+      const w = window.open('about:blank', '_blank');
+      if (!w) { alert('Popup blockerad. Tillåt popup för denna sida.'); return; }
 
-  try {
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-  } catch (e) {
-    // Fallback: ladda HTML via blob-URL om write blockeras
-    console.warn('document.write blockerat, använder blob-fallback:', e);
-    const blob = new Blob([html], { type: 'text/html' });
-    const blobUrl = URL.createObjectURL(blob);
-    w.location.replace(blobUrl);
-  }
-}
-
-</style>
-</head>
-<body>
-  <div class="skylt">
-    <img class="qr" alt="QR-kod" src="${qrDataUrl}">
-    <div class="artist">${artist || ''}</div>
-    <div class="title">${title || ''}</div>
-    <div class="year">${year || ''}</div>
-    <div class="meta">VG-nummer: ${vg}</div>
-  </div>
-  <button class="printbtn" onclick="print()">Skriv ut</button>
-</body>
-</html>`);
-      w.document.close();
+      try {
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+      } catch (e) {
+        console.warn('document.write blockerat, använder blob-fallback:', e);
+        const blob = new Blob([html], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+        w.location.replace(blobUrl);
+      }
     }
 
     // ======= Kort-rendering + totaler =======
