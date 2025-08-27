@@ -577,8 +577,14 @@
 
   /* Utskrift: ta bort skugga/ram, låt @page styra marginal */
   @media print {
-    html, body { display:block; background:none; }
-    .skylt { box-shadow:none; width:auto; height:auto; padding:0; }
+    html, body { display:block; background:none; margin:0; height:100%; }
+    .skylt {
+      box-shadow:none;
+      width:100%;
+      height:100%;   /* <-- gör att bottenraden verkligen hamnar längst ned */
+      padding:0;     /* @page sköter marginalerna i print */
+      grid-template-rows: auto 1fr auto;
+    }
     .printbtn { display:none; }
   }
 </style>
