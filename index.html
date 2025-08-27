@@ -10,6 +10,9 @@
   <link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="theme-color" content="#0077cc" />
 
+  <!-- QR-bibliotek för att generera QR-koder -->
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+
   <style>
     :root{--brand:#0077cc;--brand-dark:#005a9e;--bg:#f7f9fc}
     *{box-sizing:border-box}
@@ -63,6 +66,9 @@
     .card .add-btn { align-self: flex-start; padding:6px 10px; border:none; border-radius:8px; cursor:pointer; font-weight:600; background:#e8eef5; color:#123; }
     .card.selected .add-btn { background:#d2ebff; color:#004a99; }
     .note-line{ font-size:.9rem; color:#334; background:#f3f7fc; padding:6px 8px; border-radius:8px; }
+
+    /* Skylt-knapp särskild ton */
+    .skylt-btn { background:#f0f7ff; color:#034; }
 
     /* Expanderbar urvalslista */
     .sel-list{
@@ -193,6 +199,15 @@
       return dataArray.map(item=>{
         const n={}; for(const k in item){ n[k.replace(/^\uFEFF/,'')] = item[k]; } return n;
       });
+    }
+
+    // ======= URL → parametrar (för auto-sök & QR-länk) =======
+    function paramsFromURL() {
+      const p = new URLSearchParams(location.search);
+      const accepted = ["creator","title","created","artform","artmedium","id","older id"];
+      const params = {};
+      accepted.forEach(k => { if (p.has(k)) params[k] = p.get(k); });
+      return params;
     }
 
     // ****** LIMIT 100 ******
@@ -480,6 +495,74 @@
       }
     }
 
+    // ======= Skylt-popup med QR-kod =======
+    function openSkylt(entry) {
+      const artist = (entry.creator || '').toString();
+      const title = (entry.title || '').toString();
+      const year  = (entry.created || '').toString();
+      const vg    = (entry.id || '').toString().toUpperCase();
+
+      if (!/^VG\d+$/i.test(vg)) {
+        alert('Saknar giltigt VG-nummer.');
+        return;
+      }
+
+      // Länk som QR pekar på (samma sida + id-parameter)
+      const base = location.origin + location.pathname;
+      const url  = new URL(base);
+      url.searchParams.set('id', vg);
+
+      // Skapa QR som data-URL (så popupen är självförsörjande)
+      const qrCanvas = document.createElement('canvas');
+      new QRious({ element: qrCanvas, value: url.toString(), size: 120, level: 'H' });
+      const qrDataUrl = qrCanvas.toDataURL('image/png');
+
+      const w = window.open('', '_blank', 'noopener,noreferrer');
+      if (!w) { alert('Popup blockerad. Tillåt popup för denna sida.'); return; }
+
+      // Utskriftsvänlig HTML – Titel kursiv
+      w.document.write(`<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skylt ${vg}</title>
+<style>
+  @page { size: A6 portrait; margin: 12mm; } /* ändra vid behov, t.ex. A5/A4 */
+  html,body { height:100%; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111; margin:0; }
+  .skylt {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    line-height: 1.25;
+  }
+  .artist { font-size: 1.15rem; font-weight: 700; }
+  .title  { font-size: 1.05rem; font-style: italic; }
+  .year   { font-size: 1rem; color:#333; }
+  .qr {
+    position: absolute;
+    top: 0; right: 0;
+    width: 90px; height: 90px;
+  }
+  .meta { margin-top: 8px; font-size: .8rem; color:#555; }
+  @media print { .printbtn { display: none; } }
+</style>
+</head>
+<body>
+  <div class="skylt">
+    <img class="qr" alt="QR-kod" src="${qrDataUrl}">
+    <div class="artist">${artist || ''}</div>
+    <div class="title">${title || ''}</div>
+    <div class="year">${year || ''}</div>
+    <div class="meta">VG-nummer: ${vg}</div>
+  </div>
+  <button class="printbtn" onclick="print()">Skriv ut</button>
+</body>
+</html>`);
+      w.document.close();
+    }
+
     // ======= Kort-rendering + totaler =======
     function renderCards(data){
       const wrap = document.getElementById('cards');
@@ -548,8 +631,20 @@
           toggleSelection({ ...row, id: vg });
         });
 
+        // Skylt-knapp
+        const skyltBtn = document.createElement('button');
+        skyltBtn.type = 'button';
+        skyltBtn.textContent = 'Skylt';
+        skyltBtn.className = 'add-btn skylt-btn';
+        skyltBtn.style.marginTop = '4px';
+        skyltBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openSkylt({ ...row, id: vg });
+        });
+
         card.appendChild(kv);
         card.appendChild(btn);
+        card.appendChild(skyltBtn);
 
         if (selected) card.classList.add('selected');
 
@@ -598,12 +693,24 @@
       document.getElementById('selectionDetails')?.removeAttribute('open');
     });
 
-    // ======= Init =======
+    // ======= Init: dropdowns + auto-sök från URL =======
     populateSelect(document.getElementById('artformSelect'), ART_FORMS, 'konsttyp (alla)');
     populateSelect(document.getElementById('artmediumSelect'), ART_MEDIA, 'teknik (alla)');
 
-    // Första laddningen + visa urvalsstatus
-    fetchData({}, {}).then(updateSelectionUI);
+    (()=>{
+      const urlParams = paramsFromURL();
+      // förifyll inputs
+      for (const key in urlParams) {
+        const el = document.getElementById(inputIdMap[key] || "");
+        if (el) el.value = urlParams[key];
+      }
+      // kör sökning om något finns, annars standard
+      if (Object.keys(urlParams).length) {
+        fetchData(urlParams, urlParams).then(updateSelectionUI);
+      } else {
+        fetchData({}, {}).then(updateSelectionUI);
+      }
+    })();
 
     // PWA
     if('serviceWorker' in navigator){
