@@ -494,7 +494,7 @@
       }
     }
 
-    // ======= Skylt-popup med QR-kod (robust) =======
+    // ======= Skylt-popup med QR-kod och VGR-logga (QR nere höger, logga nere vänster) =======
     function openSkylt(entry) {
       const artist = (entry.creator || '').toString();
       const title  = (entry.title  || '').toString();
@@ -535,12 +535,13 @@
   @page { size: A6 portrait; margin: 12mm; }
   html,body { height:100%; }
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111; margin:0; }
-  .skylt { position: relative; display: grid; gap: 6px; line-height: 1.25; }
+  .skylt { position: relative; display: grid; gap: 6px; line-height: 1.25; padding-bottom: 100px; }
   .artist { font-size: 1.15rem; font-weight: 700; }
   .title  { font-size: 1.05rem; font-style: italic; }
   .year   { font-size: 1rem; color:#333; }
-  .qr { position: absolute; top: 0; right: 0; width: 90px; height: 90px; object-fit: contain; }
-  .qr-fallback { position:absolute; top:0; right:0; width:90px; height:90px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; font: 700 12px/1 system-ui; color:#333; background:#fff; }
+  .qr { position: absolute; bottom: 0; right: 0; width: 90px; height: 90px; object-fit: contain; }
+  .qr-fallback { position:absolute; bottom:0; right:0; width:90px; height:90px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; font: 700 12px/1 system-ui; color:#333; background:#fff; }
+  .logo { position:absolute; bottom:0; left:0; width:110px; height:auto; object-fit:contain; }
   .meta { margin-top: 8px; font-size: .8rem; color:#555; }
   @media print { .printbtn { display: none; } }
 </style>
@@ -550,6 +551,7 @@
     ${qrDataUrl
       ? `<img class="qr" alt="QR-kod" src="${qrDataUrl}">`
       : `<div class="qr-fallback" aria-label="QR-kod saknas">QR</div>`}
+    <img class="logo" src="vgr_logotyp.png" alt="VGR logotyp">
     <div class="artist">${esc(artist)}</div>
     <div class="title">${esc(title)}</div>
     <div class="year">${esc(year)}</div>
