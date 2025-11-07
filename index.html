@@ -61,6 +61,16 @@
     .v{font-weight:600}
     .empty{margin-top:16px;color:#566;text-align:center}
 
+    /* Klickbara fält-länkar (Konstnär, Framställningsår, Konsttyp, Teknik) */
+    .v a.field-link{
+      color:inherit;
+      text-decoration:underline;
+      cursor:pointer;
+    }
+    .v a.field-link:hover{
+      text-decoration:none;
+    }
+
     /* Urval/knapp-styles */
     .card.selected { outline: 2px solid var(--brand); box-shadow: 0 8px 22px rgba(0,119,204,.18); }
     .card .add-btn { align-self: flex-start; padding:6px 10px; border:none; border-radius:8px; cursor:pointer; font-weight:600; background:#e8eef5; color:#123; }
@@ -357,6 +367,7 @@
           const preview = has ? ` — ${raw.split('\n')[0].slice(0, 60)}` : '';
           const titleAttr = has
             ? ` title="${raw.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`
+
             : '';
           return `<span class="sel-item" data-id="${id}"${titleAttr}>
             ${id}${has ? ' 📌' : ''}<span style="font-weight:400;opacity:.85;">${preview}</span>
@@ -487,7 +498,7 @@
       }
     }
 
-    // ======= Skylt-popup: 85×54 mm, snygg förhandsvisning + korrekt print =======
+    // ======= Skylt-popup =======
     function openSkylt(entry) {
       const artist = (entry.creator || '').toString();
       const title  = (entry.title  || '').toString();
@@ -525,10 +536,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Skylt ${vg}</title>
 <style>
-  /* Exakt pappersstorlek */
   @page { size: 85mm 54mm; margin: 4mm; }
 
-  /* Snygg, centrerad förhandsvisning på skärm */
   html, body {
     height: 100%;
     margin: 0;
@@ -540,21 +549,19 @@
     color:#111;
   }
 
-  /* Kortytan: lika stor som pappret i skärmvy */
   .skylt {
     background: #fff;
     box-shadow: 0 0 8px rgba(0,0,0,.15);
     width: 85mm;
     height: 54mm;
-    padding: 4mm;                       
+    padding: 4mm;
     display: grid;
-    grid-template-rows: auto 1fr auto;  
+    grid-template-rows: auto 1fr auto;
     row-gap: 2mm;
   }
 
-  .content { padding-right: 2mm; }      
+  .content { padding-right: 2mm; }
 
-  /* Tryckvänliga textstorlekar (pt) */
   .artist { font: 700 11pt/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
   .title  { font: italic 9.5pt/1.25 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
   .year   { font: 8.5pt/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#333; margin-top: 1mm; }
@@ -565,7 +572,6 @@
     justify-content:space-between;
   }
 
-  /* Storlekar i mm för pålitlig utskrift */
   .logo { width: 23mm; height:auto; object-fit:contain; }
   .qr   { width: 20mm; height: 20mm; object-fit:contain; }
 
@@ -575,14 +581,13 @@
     border: 0.2mm solid #999; font: 700 7pt/1 system-ui; color:#333; background:#fff;
   }
 
-  /* Utskrift: ta bort skugga/ram, låt @page styra marginal */
   @media print {
     html, body { display:block; background:none; margin:0; height:100%; }
     .skylt {
       box-shadow:none;
       width:100%;
-      height:100%;   /* <-- gör att bottenraden verkligen hamnar längst ned */
-      padding:0;     /* @page sköter marginalerna i print */
+      height:100%;
+      padding:0;
       grid-template-rows: auto 1fr auto;
     }
     .printbtn { display:none; }
@@ -597,7 +602,7 @@
       ${year ? `<div class="year">${esc(year)}</div>` : ``}
     </div>
 
-    <div></div> <!-- spacer -->
+    <div></div>
 
     <div class="footer">
       <img class="logo" src="vgr_logotyp.png" alt="Västra Götalandsregionen">
@@ -658,7 +663,7 @@
         columnsOrder.forEach(col=>{
           const key = col.replace(/^\uFEFF/,'');
           let val = row[key] ?? '';
-          if(key==='id' && typeof val==='string') val = val.toUpperCase();
+          if (key === 'id' && typeof val === 'string') val = val.toUpperCase();
 
           const k = document.createElement('div');
           k.className='k';
@@ -666,7 +671,50 @@
 
           const v = document.createElement('div');
           v.className='v';
-          v.textContent = val;
+
+          // Gör vissa fält klickbara: creator, created, artform, artmedium
+          if (['creator','created','artform','artmedium'].includes(key) && val) {
+            const link = document.createElement('a');
+            link.href = '#';
+            link.textContent = val;
+            link.className = 'field-link';
+
+            link.addEventListener('click', (e) => {
+              e.preventDefault();
+
+              const targetKey = key;
+              const targetVal = val.toString();
+
+              // Rensa alla sökfält
+              for (const mapKey in inputIdMap) {
+                const el = document.getElementById(inputIdMap[mapKey]);
+                if (!el) continue;
+                if (el.tagName === 'SELECT') {
+                  el.value = '';
+                } else {
+                  el.value = '';
+                }
+              }
+
+              // Sätt valt fält
+              const fieldId = inputIdMap[targetKey];
+              const fieldEl = document.getElementById(fieldId);
+              if (fieldEl) {
+                if (fieldEl.tagName === 'SELECT') {
+                  fieldEl.value = targetVal;
+                } else {
+                  fieldEl.value = targetVal;
+                }
+              }
+
+              // Kör vanlig formulärsökning med dessa värden
+              runSearchFromForm();
+            });
+
+            v.appendChild(link);
+          } else {
+            v.textContent = val;
+          }
 
           kv.appendChild(k);
           kv.appendChild(v);
@@ -714,10 +762,9 @@
       updateSelectionUI();
     }
 
-    // ======= Händelser =======
-    document.getElementById('searchForm').addEventListener('submit', e=>{
-      e.preventDefault();
-      const params={}, raw={};
+    // ======= Formulär-sökning, återanvänds av både submit + klickbara länkar =======
+    function runSearchFromForm() {
+      const params = {}, raw = {};
       for(const key in columnsMap){
         const cleanKey = key.replace(/^\uFEFF/,'');
         const el = document.getElementById(inputIdMap[key]);
@@ -726,11 +773,18 @@
           if(val){
             if(cleanKey==='creator') val = capitalizeWords(val);
             if(cleanKey==='older id') val = normalizeOlderIdInput(val);
-            params[cleanKey]=val; raw[cleanKey]=val;
+            params[cleanKey] = val;
+            raw[cleanKey] = val;
           }
         }
       }
       fetchData(params, raw);
+    }
+
+    // ======= Händelser =======
+    document.getElementById('searchForm').addEventListener('submit', e=>{
+      e.preventDefault();
+      runSearchFromForm();
     });
 
     document.getElementById('clearBtn').addEventListener('click', ()=>{
