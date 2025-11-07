@@ -540,12 +540,10 @@
         return;
       }
 
-      // Länk som QR pekar på (samma sida + id-parameter)
       const base = location.origin + location.pathname;
       const url  = new URL(base);
       url.searchParams.set('id', vg);
 
-      // Skapa QR som data-URL (hög upplösning för skarp tryck)
       let qrDataUrl = '';
       try {
         if (typeof QRious === 'function') {
@@ -734,58 +732,72 @@
               runSearchFromForm();
             });
 
-            // + : lägg till detta filter utan att ta bort andra
-            const plusBtn = document.createElement('button');
-            plusBtn.type = 'button';
-            plusBtn.textContent = '+';
-            plusBtn.className = 'filter-btn';
-            plusBtn.title = 'Lägg till som filter';
-
-            plusBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-
-              const targetKey = key;
-              const targetVal = val.toString();
-              const fieldId = inputIdMap[targetKey];
-              const fieldEl = document.getElementById(fieldId);
-              if (fieldEl) {
-                if (fieldEl.tagName === 'SELECT') {
-                  fieldEl.value = targetVal;
-                } else {
-                  fieldEl.value = targetVal;
-                }
-              }
-
-              runSearchFromForm();
-            });
-
-            // − : ta bort just detta filter (töm fältet) och sök om
-            const minusBtn = document.createElement('button');
-            minusBtn.type = 'button';
-            minusBtn.textContent = '−';
-            minusBtn.className = 'filter-btn';
-            minusBtn.title = 'Ta bort detta filter';
-
-            minusBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-
-              const targetKey = key;
-              const fieldId = inputIdMap[targetKey];
-              const fieldEl = document.getElementById(fieldId);
-              if (fieldEl) {
-                if (fieldEl.tagName === 'SELECT') {
-                  fieldEl.value = '';
-                } else {
-                  fieldEl.value = '';
-                }
-              }
-
-              runSearchFromForm();
-            });
-
             ops.appendChild(link);
-            ops.appendChild(plusBtn);
-            ops.appendChild(minusBtn);
+
+            // Bestäm om filtret redan är aktivt för detta fält
+            const fieldId = inputIdMap[key];
+            const fieldEl = document.getElementById(fieldId);
+            let currentVal = '';
+            if (fieldEl) {
+              currentVal = fieldEl.tagName === 'SELECT' ? fieldEl.value : fieldEl.value;
+            }
+
+            const isActive = normalizeText(String(currentVal)) === normalizeText(String(val));
+
+            if (!isActive) {
+              // + : lägg till detta filter utan att ta bort andra
+              const plusBtn = document.createElement('button');
+              plusBtn.type = 'button';
+              plusBtn.textContent = '+';
+              plusBtn.className = 'filter-btn';
+              plusBtn.title = 'Lägg till som filter';
+
+              plusBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const targetKey = key;
+                const targetVal = val.toString();
+                const fieldId = inputIdMap[targetKey];
+                const fieldEl = document.getElementById(fieldId);
+                if (fieldEl) {
+                  if (fieldEl.tagName === 'SELECT') {
+                    fieldEl.value = targetVal;
+                  } else {
+                    fieldEl.value = targetVal;
+                  }
+                }
+
+                runSearchFromForm();
+              });
+
+              ops.appendChild(plusBtn);
+            } else {
+              // − : ta bort just detta filter (töm fältet) och sök om
+              const minusBtn = document.createElement('button');
+              minusBtn.type = 'button';
+              minusBtn.textContent = '−';
+              minusBtn.className = 'filter-btn';
+              minusBtn.title = 'Ta bort detta filter';
+
+              minusBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const targetKey = key;
+                const fieldId = inputIdMap[targetKey];
+                const fieldEl = document.getElementById(fieldId);
+                if (fieldEl) {
+                  if (fieldEl.tagName === 'SELECT') {
+                    fieldEl.value = '';
+                  } else {
+                    fieldEl.value = '';
+                  }
+                }
+
+                runSearchFromForm();
+              });
+
+              ops.appendChild(minusBtn);
+            }
 
             v.appendChild(ops);
           } else {
