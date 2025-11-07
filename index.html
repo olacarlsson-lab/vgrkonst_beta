@@ -66,9 +66,30 @@
       color:inherit;
       text-decoration:underline;
       cursor:pointer;
+      margin-right:4px;
     }
     .v a.field-link:hover{
       text-decoration:none;
+    }
+
+    /* + / − bredvid länkarna */
+    .filter-ops{
+      display:inline-flex;
+      gap:4px;
+      align-items:center;
+    }
+    .filter-btn{
+      border:none;
+      background:transparent;
+      padding:0 4px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:.85em;
+      line-height:1;
+      color:#555;
+    }
+    .filter-btn:hover{
+      color:#000;
     }
 
     /* Urval/knapp-styles */
@@ -209,6 +230,15 @@
       return dataArray.map(item=>{
         const n={}; for(const k in item){ n[k.replace(/^\uFEFF/,'')] = item[k]; } return n;
       });
+    }
+
+    function clearAllFilters(){
+      for (const mapKey in inputIdMap) {
+        const el = document.getElementById(inputIdMap[mapKey]);
+        if (!el) continue;
+        if (el.tagName === 'SELECT') el.value = '';
+        else el.value = '';
+      }
     }
 
     // ======= URL → parametrar (för auto-sök & QR-länk) =======
@@ -674,29 +704,23 @@
 
           // Gör vissa fält klickbara: creator, created, artform, artmedium
           if (['creator','created','artform','artmedium'].includes(key) && val) {
+            const ops = document.createElement('span');
+            ops.className = 'filter-ops';
+
             const link = document.createElement('a');
             link.href = '#';
             link.textContent = val;
             link.className = 'field-link';
 
+            // Klick på själva länken: nollställ andra filter och sök bara på detta värde
             link.addEventListener('click', (e) => {
               e.preventDefault();
 
               const targetKey = key;
               const targetVal = val.toString();
 
-              // Rensa alla sökfält
-              for (const mapKey in inputIdMap) {
-                const el = document.getElementById(inputIdMap[mapKey]);
-                if (!el) continue;
-                if (el.tagName === 'SELECT') {
-                  el.value = '';
-                } else {
-                  el.value = '';
-                }
-              }
+              clearAllFilters();
 
-              // Sätt valt fält
               const fieldId = inputIdMap[targetKey];
               const fieldEl = document.getElementById(fieldId);
               if (fieldEl) {
@@ -707,11 +731,63 @@
                 }
               }
 
-              // Kör vanlig formulärsökning med dessa värden
               runSearchFromForm();
             });
 
-            v.appendChild(link);
+            // + : lägg till detta filter utan att ta bort andra
+            const plusBtn = document.createElement('button');
+            plusBtn.type = 'button';
+            plusBtn.textContent = '+';
+            plusBtn.className = 'filter-btn';
+            plusBtn.title = 'Lägg till som filter';
+
+            plusBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+
+              const targetKey = key;
+              const targetVal = val.toString();
+              const fieldId = inputIdMap[targetKey];
+              const fieldEl = document.getElementById(fieldId);
+              if (fieldEl) {
+                if (fieldEl.tagName === 'SELECT') {
+                  fieldEl.value = targetVal;
+                } else {
+                  fieldEl.value = targetVal;
+                }
+              }
+
+              runSearchFromForm();
+            });
+
+            // − : ta bort just detta filter (töm fältet) och sök om
+            const minusBtn = document.createElement('button');
+            minusBtn.type = 'button';
+            minusBtn.textContent = '−';
+            minusBtn.className = 'filter-btn';
+            minusBtn.title = 'Ta bort detta filter';
+
+            minusBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+
+              const targetKey = key;
+              const fieldId = inputIdMap[targetKey];
+              const fieldEl = document.getElementById(fieldId);
+              if (fieldEl) {
+                if (fieldEl.tagName === 'SELECT') {
+                  fieldEl.value = '';
+                } else {
+                  fieldEl.value = '';
+                }
+              }
+
+              runSearchFromForm();
+            });
+
+            ops.appendChild(link);
+            ops.appendChild(plusBtn);
+            ops.appendChild(minusBtn);
+
+            v.appendChild(ops);
           } else {
             v.textContent = val;
           }
@@ -788,9 +864,7 @@
     });
 
     document.getElementById('clearBtn').addEventListener('click', ()=>{
-      document.querySelectorAll('#searchForm input').forEach(i=>i.value='');
-      document.getElementById('artformSelect').value = '';
-      document.getElementById('artmediumSelect').value = '';
+      clearAllFilters();
       fetchData({}, {}); // ladda om med standard
     });
 
