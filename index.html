@@ -1023,10 +1023,10 @@
       <div style="display:flex; gap:8px; align-items:center;">
         <div id="totalCount" style="margin:0; font-size:0.85rem; color:var(--text-muted);" role="status" aria-live="polite"></div>
         <button id="reloadDataBtn" type="button" class="toolbar-btn" aria-label="Uppdatera data från servern">
-          Uppdatera
+          🔄 Uppdatera
         </button>
         <button id="toggleSelectionPanel" type="button" class="toolbar-btn" aria-expanded="false" aria-controls="selectionPanel" aria-label="Visa eller dölj urvalspanel">
-          <span id="selectionPanelToggleText">Urval (0)</span>
+          <span id="selectionPanelToggleText">⭐ Urval (0)</span>
         </button>
       </div>
     </div>
@@ -1910,7 +1910,7 @@
         const count = selectionSize();
         const isOpen = selectionPanel?.open || false;
         const prefix = isOpen ? 'Dölj' : 'Visa';
-        toggleText.textContent = `${prefix} urval (${count})`;
+        toggleText.textContent = `⭐ ${prefix} urval (${count})`;
       }
     }
 
