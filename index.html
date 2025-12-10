@@ -12,6 +12,11 @@
   <link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="theme-color" content="#020617" />
 
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin="" />
+
   <style>
     :root {
       --brand: #38bdf8;
@@ -194,6 +199,110 @@
     #advancedFilters summary {
       padding: 8px 0;
       font-weight: 500;
+    }
+
+    /* Map View */
+    #mapViewContainer {
+      display: none;
+      margin-top: 14px;
+      height: 600px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 2px 12px rgba(15, 23, 42, .08);
+    }
+
+    #mapViewContainer.active {
+      display: block;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    .view-toggle-container {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .view-toggle-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--btn-secondary-border);
+      border-radius: 8px;
+      background: var(--btn-secondary-bg);
+      color: var(--btn-secondary-fg);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .18s;
+    }
+
+    .view-toggle-btn:hover {
+      filter: brightness(1.05);
+    }
+
+    .view-toggle-btn.active {
+      background: var(--brand);
+      color: var(--btn-primary-fg);
+      border-color: var(--brand);
+    }
+
+    .map-info {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* Leaflet popup customization */
+    .leaflet-popup-content-wrapper {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, .15);
+    }
+
+    .leaflet-popup-content {
+      margin: 12px;
+      font-size: 0.9rem;
+    }
+
+    .leaflet-popup-tip {
+      background: var(--card-bg);
+    }
+
+    .popup-content h4 {
+      margin: 0 0 8px 0;
+      font-size: 1rem;
+      color: var(--brand);
+    }
+
+    .popup-content p {
+      margin: 4px 0;
+      font-size: 0.85rem;
+    }
+
+    .popup-content .popup-label {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .popup-content .popup-add-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background: var(--brand);
+      color: var(--btn-primary-fg);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .popup-content .popup-add-btn:hover {
+      filter: brightness(1.1);
     }
 
     /* Sökfält */
@@ -697,8 +806,14 @@
       <div id="selectionList" class="sel-list" aria-live="polite"></div>
     </details>
 
+    <!-- View Toggle -->
+    <div class="view-toggle-container">
+      <button type="button" id="listViewBtn" class="view-toggle-btn active">📋 Listvy</button>
+      <button type="button" id="mapViewBtn" class="view-toggle-btn">🗺️ Kartvy</button>
+    </div>
+
     <!-- Sorting Options -->
-    <div style="margin-top:12px; display:flex; align-items:center; gap:8px;">
+    <div id="sortingOptions" style="margin-top:12px; display:flex; align-items:center; gap:8px;">
       <label for="sortSelect" style="font-size:0.85rem; color:var(--text-muted);">Sortera:</label>
       <select id="sortSelect"
         style="padding:4px 8px; font-size:0.85rem; background:var(--field-bg); color:var(--text-main); border:1px solid var(--border-soft); border-radius:6px;">
@@ -710,8 +825,17 @@
       </select>
     </div>
 
-    <div id="cards" class="cards" role="list"></div>
-    <div id="empty" class="empty" hidden>Inga resultat.</div>
+    <!-- Map View -->
+    <div id="mapViewContainer">
+      <div id="map"></div>
+    </div>
+    <div id="mapInfo" class="map-info" style="display:none;"></div>
+
+    <!-- List View -->
+    <div id="listViewContainer">
+      <div id="cards" class="cards" role="list"></div>
+      <div id="empty" class="empty" hidden>Inga resultat.</div>
+    </div>
 
     <!-- Load More Button -->
     <div id="loadMoreContainer" style="margin-top:20px; text-align:center; display:none;">
@@ -777,6 +901,10 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
   <script>
     window.onerror = function (msg, url, line, col, error) {
       const div = document.getElementById('totalCount');
@@ -2169,6 +2297,141 @@
     document.getElementById('loadMoreBtn')?.addEventListener('click', () => {
       displayedCount += ITEMS_PER_PAGE;
       renderCards(currentResults);
+    });
+
+    // ======= Map Functionality =======
+    let map = null;
+    let markersLayer = null;
+    let currentView = 'list'; // 'list' or 'map'
+
+    function initMap() {
+      if (map) return; // Already initialized
+
+      // Center on Västra Götaland, Sweden
+      map = L.map('map').setView([58.0, 13.0], 8);
+
+      // Add OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+    }
+
+    function filterArtworksWithCoordinates(artworks) {
+      return artworks.filter(item => {
+        const lat = item.latitude;
+        const lon = item.longitude;
+        return lat && lon &&
+               String(lat).trim() !== '' &&
+               String(lon).trim() !== '' &&
+               !isNaN(parseFloat(lat)) &&
+               !isNaN(parseFloat(lon));
+      });
+    }
+
+    function displayArtworksOnMap(artworks) {
+      if (!map) initMap();
+
+      // Clear existing markers
+      markersLayer.clearLayers();
+
+      const artworksWithCoords = filterArtworksWithCoordinates(artworks);
+
+      if (artworksWithCoords.length === 0) {
+        document.getElementById('mapInfo').style.display = 'block';
+        document.getElementById('mapInfo').textContent = 'Inga konstverk med koordinater hittades i detta urval.';
+        return;
+      }
+
+      document.getElementById('mapInfo').style.display = 'block';
+      document.getElementById('mapInfo').textContent = `Visar ${artworksWithCoords.length} konstverk med koordinater på kartan.`;
+
+      // Add markers for each artwork
+      const bounds = [];
+      artworksWithCoords.forEach(item => {
+        const lat = parseFloat(item.latitude);
+        const lon = parseFloat(item.longitude);
+
+        if (!isNaN(lat) && !isNaN(lon)) {
+          bounds.push([lat, lon]);
+
+          const marker = L.marker([lat, lon]).addTo(markersLayer);
+
+          // Create popup content
+          const popupContent = `
+            <div class="popup-content">
+              <h4>${item.title || 'Utan titel'}</h4>
+              <p><span class="popup-label">Konstnär:</span> ${item.creator || 'Okänd'}</p>
+              <p><span class="popup-label">År:</span> ${item.created || 'Okänt'}</p>
+              <p><span class="popup-label">Konsttyp:</span> ${item.artform || 'Okänd'}</p>
+              <p><span class="popup-label">Teknik:</span> ${item.artmedium || 'Okänd'}</p>
+              <p><span class="popup-label">VG-nummer:</span> ${item.id || 'Okänt'}</p>
+              ${!hasSelection(item.id) ?
+                `<button class="popup-add-btn" onclick="addToSelectionFromMap('${item.id}')">Lägg till i urval</button>` :
+                `<p style="color: var(--brand); font-weight: 600; margin-top: 10px;">✓ Finns i urval</p>`
+              }
+            </div>
+          `;
+
+          marker.bindPopup(popupContent);
+        }
+      });
+
+      // Fit map to show all markers
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+
+      // Invalidate size to ensure proper rendering
+      setTimeout(() => {
+        if (map) map.invalidateSize();
+      }, 100);
+    }
+
+    // Global function for adding from map popup
+    window.addToSelectionFromMap = function(vgId) {
+      const artwork = allData.find(item => item.id === vgId);
+      if (artwork) {
+        addToSelection(artwork, '');
+        // Refresh map to update popup
+        displayArtworksOnMap(currentView === 'map' ? currentResults : allData);
+      }
+    };
+
+    // View toggle functionality
+    const listViewBtn = document.getElementById('listViewBtn');
+    const mapViewBtn = document.getElementById('mapViewBtn');
+    const listViewContainer = document.getElementById('listViewContainer');
+    const mapViewContainer = document.getElementById('mapViewContainer');
+    const sortingOptions = document.getElementById('sortingOptions');
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+    const mapInfo = document.getElementById('mapInfo');
+
+    listViewBtn?.addEventListener('click', () => {
+      currentView = 'list';
+      listViewBtn.classList.add('active');
+      mapViewBtn.classList.remove('active');
+      listViewContainer.style.display = 'block';
+      mapViewContainer.classList.remove('active');
+      sortingOptions.style.display = 'flex';
+      loadMoreContainer.style.display = currentResults.length > displayedCount ? 'block' : 'none';
+      mapInfo.style.display = 'none';
+    });
+
+    mapViewBtn?.addEventListener('click', () => {
+      currentView = 'map';
+      mapViewBtn.classList.add('active');
+      listViewBtn.classList.remove('active');
+      listViewContainer.style.display = 'none';
+      mapViewContainer.classList.add('active');
+      sortingOptions.style.display = 'none';
+      loadMoreContainer.style.display = 'none';
+
+      // Show all artworks with coordinates or current search results
+      const artworksToShow = currentResults.length > 0 ? currentResults : allData;
+      displayArtworksOnMap(artworksToShow);
     });
 
     // ======= Init: dropdowns + starta laddning =======
