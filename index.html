@@ -303,11 +303,45 @@
       width: 100%;
     }
 
+    /* Control bar layout */
+    .control-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .control-bar-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .control-bar-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .control-bar-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sorting-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .view-toggle-container {
       display: flex;
       gap: 8px;
-      margin-top: 10px;
-      margin-bottom: 10px;
     }
 
     .view-toggle-btn {
@@ -876,6 +910,49 @@
         padding: 0.75rem 1rem;
       }
 
+      /* Mobile control bar adjustments */
+      .control-bar-top {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .view-toggle-container {
+        width: 100%;
+      }
+
+      .view-toggle-btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .control-bar-actions {
+        width: 100%;
+      }
+
+      .toolbar-btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .control-bar-bottom {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .sorting-controls {
+        width: 100%;
+        min-width: auto;
+      }
+
+      .sorting-controls select {
+        width: 100% !important;
+        max-width: none !important;
+      }
+
+      #totalCount {
+        text-align: center;
+      }
+
       #searchForm {
         grid-template-columns: 1fr;
         padding: 18px 16px 16px;
@@ -999,35 +1076,38 @@
     </section>
 
     <!-- Combined control bar: View toggle + Sorting + Actions -->
-    <div role="toolbar" aria-label="Visnings- och sorteringsalternativ" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap;">
-      <!-- Left: View toggle + Sorting -->
-      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <div class="view-toggle-container" role="group" aria-label="Välj visningsläge" style="margin:0;">
+    <div role="toolbar" aria-label="Visnings- och sorteringsalternativ" class="control-bar">
+      <!-- Top row: View toggle + Actions -->
+      <div class="control-bar-top">
+        <div class="view-toggle-container" role="group" aria-label="Välj visningsläge">
           <button type="button" id="listViewBtn" class="view-toggle-btn active" aria-pressed="true" aria-label="Listvy - visar konstverk som lista">📋 Listvy</button>
           <button type="button" id="mapViewBtn" class="view-toggle-btn" aria-pressed="false" aria-label="Kartvy - visar konstverk på karta">🗺️ Kartvy</button>
         </div>
-        <div id="sortingOptions" style="margin:0; display:flex; align-items:center; gap:8px;">
-          <label for="sortSelect" style="font-size:0.85rem; color:var(--text-muted);">Sortera:</label>
-          <select id="sortSelect" aria-label="Välj sorteringsordning för konstverk"
-            style="padding:4px 8px; font-size:0.85rem; background:var(--field-bg); color:var(--text-main); border:1px solid var(--border-soft); border-radius:6px;">
-            <option value="relevance">Relevans</option>
-            <option value="artist-az">Konstnär (A-Ö)</option>
-            <option value="title-az">Titel (A-Ö)</option>
-            <option value="year-old">År (Äldst först)</option>
-            <option value="year-new">År (Nyast först)</option>
-          </select>
+
+        <div class="control-bar-actions">
+          <button id="reloadDataBtn" type="button" class="toolbar-btn" aria-label="Uppdatera data från servern">
+            🔄 Uppdatera
+          </button>
+          <button id="toggleSelectionPanel" type="button" class="toolbar-btn" aria-expanded="false" aria-controls="selectionPanel" aria-label="Visa eller dölj urvalspanel">
+            <span id="selectionPanelToggleText">⭐ Urval (0)</span>
+          </button>
         </div>
       </div>
 
-      <!-- Right: Count + Actions -->
-      <div style="display:flex; gap:8px; align-items:center;">
-        <div id="totalCount" style="margin:0; font-size:0.85rem; color:var(--text-muted);" role="status" aria-live="polite"></div>
-        <button id="reloadDataBtn" type="button" class="toolbar-btn" aria-label="Uppdatera data från servern">
-          🔄 Uppdatera
-        </button>
-        <button id="toggleSelectionPanel" type="button" class="toolbar-btn" aria-expanded="false" aria-controls="selectionPanel" aria-label="Visa eller dölj urvalspanel">
-          <span id="selectionPanelToggleText">⭐ Urval (0)</span>
-        </button>
+      <!-- Bottom row: Sorting + Count -->
+      <div class="control-bar-bottom">
+        <div id="sortingOptions" class="sorting-controls">
+          <label for="sortSelect" style="font-size:0.85rem; color:var(--text-muted);">Sortera:</label>
+          <select id="sortSelect" aria-label="Välj sorteringsordning för konstverk"
+            style="padding:4px 8px; font-size:0.85rem; background:var(--field-bg); color:var(--text-main); border:1px solid var(--border-soft); border-radius:6px; width:auto; max-width:150px;">
+            <option value="relevance">Relevans</option>
+            <option value="artist-az">A-Ö konstnär</option>
+            <option value="title-az">A-Ö titel</option>
+            <option value="year-old">År äldst</option>
+            <option value="year-new">År nyast</option>
+          </select>
+        </div>
+        <div id="totalCount" style="font-size:0.85rem; color:var(--text-muted); white-space:nowrap;" role="status" aria-live="polite"></div>
       </div>
     </div>
 
