@@ -324,11 +324,31 @@
 
     .view-toggle-btn:hover {
       filter: brightness(1.05);
+      border-color: var(--brand);
     }
 
     .view-toggle-btn.active {
       background: var(--brand);
-      color: var(--btn-primary-fg);
+      color: #000;
+      border-color: var(--brand);
+    }
+
+    /* Toolbar buttons (Urval, Uppdatera) */
+    .toolbar-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--btn-secondary-border);
+      border-radius: 8px;
+      background: var(--btn-secondary-bg);
+      color: var(--btn-secondary-fg);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .18s;
+      white-space: nowrap;
+    }
+
+    .toolbar-btn:hover {
+      filter: brightness(1.05);
       border-color: var(--brand);
     }
 
@@ -1000,15 +1020,13 @@
       </div>
 
       <!-- Right: Count + Actions -->
-      <div style="display:flex; gap:10px; align-items:center;">
+      <div style="display:flex; gap:8px; align-items:center;">
         <div id="totalCount" style="margin:0; font-size:0.85rem; color:var(--text-muted);" role="status" aria-live="polite"></div>
-        <button id="toggleSelectionPanel" type="button" aria-expanded="false" aria-controls="selectionPanel" aria-label="Visa eller dölj urvalspanel"
-          style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer; text-decoration:underline; padding:0; white-space:nowrap;">
-          <span id="selectionPanelToggleText">Urval (0)</span>
-        </button>
-        <button id="reloadDataBtn" type="button" aria-label="Uppdatera data från servern"
-          style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer; text-decoration:underline; padding:0; white-space:nowrap;">
+        <button id="reloadDataBtn" type="button" class="toolbar-btn" aria-label="Uppdatera data från servern">
           Uppdatera
+        </button>
+        <button id="toggleSelectionPanel" type="button" class="toolbar-btn" aria-expanded="false" aria-controls="selectionPanel" aria-label="Visa eller dölj urvalspanel">
+          <span id="selectionPanelToggleText">Urval (0)</span>
         </button>
       </div>
     </div>
@@ -1887,9 +1905,12 @@
 
       // Update toggle button text
       const toggleText = document.getElementById('selectionPanelToggleText');
+      const selectionPanel = document.getElementById('selectionPanel');
       if (toggleText) {
         const count = selectionSize();
-        toggleText.textContent = count > 0 ? `Visa urval (${count})` : 'Visa urval (0)';
+        const isOpen = selectionPanel?.open || false;
+        const prefix = isOpen ? 'Dölj' : 'Visa';
+        toggleText.textContent = `${prefix} urval (${count})`;
       }
     }
 
@@ -2464,8 +2485,9 @@
     toggleAdvancedBtn?.addEventListener('click', () => {
       if (advancedFiltersDetails) {
         advancedFiltersDetails.open = !advancedFiltersDetails.open;
-        // Update aria-expanded for accessibility
+        // Update aria-expanded and button text
         toggleAdvancedBtn.setAttribute('aria-expanded', advancedFiltersDetails.open.toString());
+        toggleAdvancedBtn.textContent = advancedFiltersDetails.open ? 'Dölj avancerade filter' : 'Avancerade filter';
       }
     });
 
@@ -2818,6 +2840,8 @@
         selectionPanel.open = !selectionPanel.open;
         // Update aria-expanded for accessibility
         toggleSelectionPanel.setAttribute('aria-expanded', selectionPanel.open.toString());
+        // Update button text
+        updateSelectionUI();
       }
     });
 
