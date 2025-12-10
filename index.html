@@ -1497,8 +1497,12 @@
       const total = document.getElementById('totalCount');
       total.textContent = `Totalt ${filtered.length} träffar`;
 
-
       document.getElementById('empty').hidden = filtered.length > 0;
+
+      // Update map if in map view
+      if (currentView === 'map') {
+        displayArtworksOnMap(filtered);
+      }
     }
 
     // ======= Formulär-sökning =======
@@ -2242,6 +2246,11 @@
       const total = document.getElementById('totalCount');
       total.textContent = `Totalt ${sorted.length} träffar`;
       document.getElementById('empty').hidden = sorted.length > 0;
+
+      // Update map if in map view
+      if (currentView === 'map') {
+        displayArtworksOnMap(sorted);
+      }
     }
 
     // ======= Händelser =======
@@ -2429,8 +2438,8 @@
       sortingOptions.style.display = 'none';
       loadMoreContainer.style.display = 'none';
 
-      // Show all artworks with coordinates or current search results
-      const artworksToShow = currentResults.length > 0 ? currentResults : allData;
+      // Show current search results or all artworks with coordinates
+      const artworksToShow = currentResults && currentResults.length > 0 ? currentResults : allData;
       displayArtworksOnMap(artworksToShow);
     });
 
