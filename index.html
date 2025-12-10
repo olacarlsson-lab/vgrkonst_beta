@@ -27,22 +27,22 @@
     :root[data-theme="dark"] {
       --body-bg: radial-gradient(circle at top, #0f172a 0, #020617 38%, #020617 100%);
       --header-bg: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.4), transparent 80%);
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
+      --text-main: #f3f4f6; /* Improved from #e5e7eb for better contrast */
+      --text-muted: #d1d5db; /* Improved from #9ca3af for WCAG AA compliance (4.5:1 on dark bg) */
 
       --panel-bg: rgba(15, 23, 42, 0.95);
       --card-bg: rgba(15, 23, 42, 0.95);
       --chip-bg: #0f172a;
 
-      --border-soft: #1f2937;
-      --border-strong: #1e293b;
+      --border-soft: #374151; /* Improved from #1f2937 for better visibility */
+      --border-strong: #4b5563; /* Improved from #1e293b */
 
       --field-bg: #020617;
 
       --btn-primary-fg: #0b1020;
       --btn-secondary-bg: #020617;
-      --btn-secondary-border: #1f2937;
-      --btn-secondary-fg: #9ca3af;
+      --btn-secondary-border: #374151;
+      --btn-secondary-fg: #d1d5db; /* Improved contrast */
 
       --selection-add-bg: #022c22;
       --selection-add-fg: #bbf7d0;
@@ -53,25 +53,25 @@
     :root[data-theme="light"] {
       --body-bg: linear-gradient(to bottom, #f5f7fa 0%, #e8ecf1 100%);
       --header-bg: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.85), transparent 80%);
-      --text-main: #1e293b;
-      --text-muted: #64748b;
+      --text-main: #0f172a; /* Improved from #1e293b for better contrast */
+      --text-muted: #475569; /* Improved from #64748b for WCAG AA compliance */
 
       --panel-bg: #f8fafc;
       --card-bg: #ffffff;
       --chip-bg: #e2e8f0;
 
       --border-soft: #cbd5e1;
-      --border-strong: #94a3b8;
+      --border-strong: #64748b; /* Improved from #94a3b8 */
 
       --field-bg: #f1f5f9;
 
       --btn-primary-fg: #f8fafc;
       --btn-secondary-bg: #f1f5f9;
       --btn-secondary-border: #cbd5e1;
-      --btn-secondary-fg: #475569;
+      --btn-secondary-fg: #334155; /* Improved from #475569 for better contrast */
 
       --selection-add-bg: #f0fdf4;
-      --selection-add-fg: #166534;
+      --selection-add-fg: #14532d; /* Improved from #166534 for better contrast */
       --selection-add-border: #86efac;
     }
 
@@ -85,6 +85,55 @@
       background: var(--body-bg);
       color: var(--text-main);
       min-height: 100vh;
+    }
+
+    /* Skip link for keyboard navigation */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--brand);
+      color: #000;
+      padding: 8px 16px;
+      text-decoration: none;
+      z-index: 10000;
+      font-weight: 600;
+      border-radius: 0 0 4px 0;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* Focus-visible styles for all interactive elements */
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    details:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 3px solid var(--brand);
+      outline-offset: 2px;
+    }
+
+    .card:focus-visible {
+      outline: 3px solid var(--brand);
+      outline-offset: 2px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, .12), 0 0 0 3px rgba(56, 189, 248, .3);
+    }
+
+    /* Visually hidden but accessible to screen readers */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
     }
 
     header {
@@ -437,39 +486,80 @@
       margin-top: 14px;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      gap: 16px;
     }
 
     .card {
+      position: relative;
       background: var(--card-bg);
-      border-radius: 14px;
-      padding: 14px 14px;
+      border-radius: 16px;
+      padding: 16px;
       border: 1px solid var(--border-soft);
-      box-shadow: 0 2px 6px rgba(15, 23, 42, .04);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, .06);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      transition: transform .2s ease, box-shadow .2s ease;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, .12);
+    }
+
+    /* Art type color accent stripe */
+    .card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--card-accent, var(--border-soft));
+      transition: width .2s ease;
+    }
+
+    .card:hover::before {
+      width: 5px;
+    }
+
+    /* Title - most prominent */
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.3;
+      margin-bottom: 2px;
+    }
+
+    /* Artist - secondary prominence */
+    .card-artist {
+      font-size: .95rem;
+      font-weight: 500;
+      color: var(--brand);
+      margin-bottom: 8px;
     }
 
     .kv {
       display: grid;
-      grid-template-columns: minmax(130px, 38%) 1fr;
-      /* mer plats för Framställningsår */
+      grid-template-columns: minmax(100px, 35%) 1fr;
       gap: 6px 10px;
       align-items: start;
     }
 
     .k {
       color: var(--text-muted);
-      font-size: .8rem;
+      font-size: .75rem;
       text-transform: uppercase;
       letter-spacing: .06em;
+      font-weight: 600;
     }
 
     .v {
       font-weight: 500;
       color: var(--text-main);
-      font-size: .9rem;
+      font-size: .85rem;
     }
 
     .empty {
@@ -517,10 +607,32 @@
 
     /* Urval/knapp-styles */
     .card.selected {
-      outline: 1px solid rgba(56, 189, 248, .7);
-      box-shadow:
-        0 18px 45px rgba(15, 23, 42, .4),
-        0 0 0 1px rgba(56, 189, 248, .4);
+      background: linear-gradient(to right, rgba(56, 189, 248, 0.05) 0%, var(--card-bg) 20%);
+      border-color: rgba(56, 189, 248, .4);
+      box-shadow: 0 8px 24px rgba(56, 189, 248, .15);
+    }
+
+    .card.selected::before {
+      width: 6px;
+      background: linear-gradient(180deg, var(--brand), var(--brand-dark));
+    }
+
+    .card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, .3);
     }
 
     .card-buttons {
@@ -783,6 +895,8 @@
 </head>
 
 <body>
+  <a href="#main-content" class="skip-link">Hoppa till huvudinnehåll</a>
+
   <header>
     <div class="header-inner">
       <div class="title-block">
@@ -793,68 +907,88 @@
     </div>
   </header>
 
-  <div class="wrap">
+  <main id="main-content" class="wrap">
     <!-- Universal Search -->
     <div id="universalSearchContainer">
       <div class="search-wrapper">
-        <input type="search" id="universalSearch" placeholder="Sök konstverk (konstnär, titel, år, VG-nummer...)" autocomplete="off" />
+        <label for="universalSearch" class="visually-hidden">Universell sökning</label>
+        <input type="search" id="universalSearch" placeholder="Sök konstverk (konstnär, titel, år, VG-nummer...)" autocomplete="off" aria-label="Sök konstverk efter konstnär, titel, år eller VG-nummer" />
         <button type="button" id="clearSearchBtn" class="clear-search-btn" aria-label="Rensa sökning" title="Rensa sökning">×</button>
       </div>
-      <button type="button" id="toggleAdvanced" class="toggle-advanced-btn">Avancerade filter</button>
+      <button type="button" id="toggleAdvanced" class="toggle-advanced-btn" aria-expanded="false" aria-controls="advancedFilters">Avancerade filter</button>
     </div>
 
     <!-- Advanced Filters (Collapsible) -->
     <details id="advancedFilters">
       <summary style="display:none;"></summary>
-      <form id="searchForm" aria-label="Sök i datasetet">
-        <input type="search" id="creatorInput" placeholder="konstnär" autocomplete="off" />
-        <input type="search" id="titleInput" placeholder="titel" autocomplete="off" />
-        <input type="search" id="createdInput" placeholder="framställningsår" autocomplete="off" />
-        <select id="artformSelect">
+      <form id="searchForm" aria-label="Avancerade sökfilter" aria-labelledby="advancedFiltersHeading">
+        <h2 id="advancedFiltersHeading" class="visually-hidden">Avancerade filter</h2>
+
+        <label for="creatorInput" class="visually-hidden">Konstnär</label>
+        <input type="search" id="creatorInput" placeholder="konstnär" autocomplete="off" aria-label="Filtrera efter konstnär" />
+
+        <label for="titleInput" class="visually-hidden">Titel</label>
+        <input type="search" id="titleInput" placeholder="titel" autocomplete="off" aria-label="Filtrera efter titel" />
+
+        <label for="createdInput" class="visually-hidden">Framställningsår</label>
+        <input type="search" id="createdInput" placeholder="framställningsår" autocomplete="off" aria-label="Filtrera efter framställningsår" />
+
+        <label for="artformSelect" class="visually-hidden">Konsttyp</label>
+        <select id="artformSelect" aria-label="Filtrera efter konsttyp">
           <option value="">konsttyp (alla)</option>
         </select>
-        <select id="artmediumSelect">
+
+        <label for="artmediumSelect" class="visually-hidden">Teknik</label>
+        <select id="artmediumSelect" aria-label="Filtrera efter teknik">
           <option value="">teknik (alla)</option>
         </select>
-        <input type="search" id="idInput" placeholder="vg-nummer" autocomplete="off" />
-        <input type="search" id="olderIdInput" placeholder="äldre id" autocomplete="off" />
+
+        <label for="idInput" class="visually-hidden">VG-nummer</label>
+        <input type="search" id="idInput" placeholder="vg-nummer" autocomplete="off" aria-label="Filtrera efter VG-nummer" />
+
+        <label for="olderIdInput" class="visually-hidden">Äldre ID</label>
+        <input type="search" id="olderIdInput" placeholder="äldre id" autocomplete="off" aria-label="Filtrera efter äldre ID" />
+
         <div class="actions">
-          <button id="searchBtn" type="submit">Sök</button>
-          <button id="clearBtn" type="button">Rensa</button>
+          <button id="searchBtn" type="submit" aria-label="Utför sökning med filter">Sök</button>
+          <button id="clearBtn" type="button" aria-label="Rensa alla filter">Rensa</button>
         </div>
       </form>
     </details>
 
     <!-- Collapsible Selection Panel -->
-    <details id="selectionPanel" style="margin-top:8px; margin-bottom:8px;">
-      <summary style="display:none;"></summary>
-      <div style="background:var(--panel-bg); padding:10px; border-radius:10px; border:1px solid var(--border-soft);">
-        <div id="selectionBar" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
-          <span id="selectionCount" style="font-size:0.85rem; font-weight:600;">Urval: 0</span>
-          <button id="addAllBtn" type="button" style="font-size:0.8rem; padding:4px 10px;">Lägg till alla</button>
-          <button id="copyMailSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;">Exportera urval</button>
-          <button id="clearSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;">Rensa urval</button>
-        </div>
+    <section aria-labelledby="selectionHeading">
+      <details id="selectionPanel" style="margin-top:8px; margin-bottom:8px;">
+        <summary style="display:none;"></summary>
+        <div style="background:var(--panel-bg); padding:10px; border-radius:10px; border:1px solid var(--border-soft);">
+          <h2 id="selectionHeading" class="visually-hidden">Urvalspanel</h2>
+          <div id="selectionBar" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+            <span id="selectionCount" style="font-size:0.85rem; font-weight:600;" aria-live="polite" aria-atomic="true">Urval: 0</span>
+            <button id="addAllBtn" type="button" style="font-size:0.8rem; padding:4px 10px;" aria-label="Lägg till alla synliga konstverk i urval">Lägg till alla</button>
+            <button id="copyMailSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;" aria-label="Exportera urval till e-post eller urklipp">Exportera urval</button>
+            <button id="clearSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;" aria-label="Rensa hela urvalet">Rensa urval</button>
+          </div>
 
-        <!-- Expanderbar urvalslista -->
-        <details id="selectionDetails">
-          <summary style="cursor:pointer; user-select:none; font-size:0.85rem; color:var(--text-muted);">Visa detaljer</summary>
-          <div id="selectionList" class="sel-list" aria-live="polite"></div>
-        </details>
-      </div>
-    </details>
+          <!-- Expanderbar urvalslista -->
+          <details id="selectionDetails">
+            <summary style="cursor:pointer; user-select:none; font-size:0.85rem; color:var(--text-muted);" aria-label="Visa eller dölj urval detaljer">Visa detaljer</summary>
+            <div id="selectionList" class="sel-list" role="list" aria-live="polite"></div>
+          </details>
+        </div>
+      </details>
+    </section>
 
     <!-- Combined control bar: View toggle + Sorting + Actions -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap;">
+    <div role="toolbar" aria-label="Visnings- och sorteringsalternativ" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap;">
       <!-- Left: View toggle + Sorting -->
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <div class="view-toggle-container" style="margin:0;">
-          <button type="button" id="listViewBtn" class="view-toggle-btn active">📋 Listvy</button>
-          <button type="button" id="mapViewBtn" class="view-toggle-btn">🗺️ Kartvy</button>
+        <div class="view-toggle-container" role="group" aria-label="Välj visningsläge" style="margin:0;">
+          <button type="button" id="listViewBtn" class="view-toggle-btn active" aria-pressed="true" aria-label="Listvy - visar konstverk som lista">📋 Listvy</button>
+          <button type="button" id="mapViewBtn" class="view-toggle-btn" aria-pressed="false" aria-label="Kartvy - visar konstverk på karta">🗺️ Kartvy</button>
         </div>
         <div id="sortingOptions" style="margin:0; display:flex; align-items:center; gap:8px;">
           <label for="sortSelect" style="font-size:0.85rem; color:var(--text-muted);">Sortera:</label>
-          <select id="sortSelect"
+          <select id="sortSelect" aria-label="Välj sorteringsordning för konstverk"
             style="padding:4px 8px; font-size:0.85rem; background:var(--field-bg); color:var(--text-main); border:1px solid var(--border-soft); border-radius:6px;">
             <option value="relevance">Relevans</option>
             <option value="artist-az">Konstnär (A-Ö)</option>
@@ -867,12 +1001,12 @@
 
       <!-- Right: Count + Actions -->
       <div style="display:flex; gap:10px; align-items:center;">
-        <div id="totalCount" style="margin:0; font-size:0.85rem; color:var(--text-muted);"></div>
-        <button id="toggleSelectionPanel" type="button"
+        <div id="totalCount" style="margin:0; font-size:0.85rem; color:var(--text-muted);" role="status" aria-live="polite"></div>
+        <button id="toggleSelectionPanel" type="button" aria-expanded="false" aria-controls="selectionPanel" aria-label="Visa eller dölj urvalspanel"
           style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer; text-decoration:underline; padding:0; white-space:nowrap;">
           <span id="selectionPanelToggleText">Urval (0)</span>
         </button>
-        <button id="reloadDataBtn" type="button"
+        <button id="reloadDataBtn" type="button" aria-label="Uppdatera data från servern"
           style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer; text-decoration:underline; padding:0; white-space:nowrap;">
           Uppdatera
         </button>
@@ -880,75 +1014,76 @@
     </div>
 
     <!-- Map View -->
-    <div id="mapViewContainer">
-      <div id="map"></div>
-    </div>
-    <div id="mapInfo" class="map-info" style="display:none;"></div>
+    <section id="mapViewContainer" aria-label="Kartvy av konstverk" role="region">
+      <div id="map" role="application" aria-label="Interaktiv karta som visar konstverk med geografiska koordinater"></div>
+    </section>
+    <div id="mapInfo" class="map-info" style="display:none;" role="status" aria-live="polite"></div>
 
     <!-- List View -->
-    <div id="listViewContainer">
-      <div id="cards" class="cards" role="list"></div>
-      <div id="empty" class="empty" hidden>Inga resultat.</div>
-    </div>
+    <section id="listViewContainer" aria-label="Listvy av konstverk" role="region">
+      <div id="cards" class="cards" role="list" aria-label="Konstverk resultat"></div>
+      <div id="empty" class="empty" hidden role="status">Inga resultat.</div>
+    </section>
 
     <!-- Load More Button -->
     <div id="loadMoreContainer" style="margin-top:20px; text-align:center; display:none;">
-      <button id="loadMoreBtn" type="button"
+      <button id="loadMoreBtn" type="button" aria-label="Ladda fler konstverk resultat"
         style="padding:10px 32px; background:var(--btn-secondary-bg); color:var(--btn-secondary-fg); border:1px solid var(--border-soft); border-radius:999px; cursor:pointer; font-size:0.9rem; font-weight:600;">
         Visa fler resultat
       </button>
     </div>
-  </div>
+  </main>
 
   <!-- Note Dialog -->
-  <dialog id="noteDialog">
+  <dialog id="noteDialog" aria-labelledby="noteDialogHeading">
     <form method="dialog" style="padding:24px;">
-      <h3>Redigera anteckning</h3>
-      <textarea id="noteDialogInput" placeholder="Skriv din anteckning här..."></textarea>
+      <h3 id="noteDialogHeading">Redigera anteckning</h3>
+      <label for="noteDialogInput" class="visually-hidden">Anteckning</label>
+      <textarea id="noteDialogInput" placeholder="Skriv din anteckning här..." aria-label="Anteckningsfält för konstverk"></textarea>
       <div class="dialog-actions">
         <button type="button" id="noteDialogCancel"
-          style="background:transparent; border:1px solid var(--border-soft); color:var(--text-muted);">Avbryt</button>
+          style="background:transparent; border:1px solid var(--border-soft); color:var(--text-muted);" aria-label="Avbryt och stäng dialog">Avbryt</button>
         <button type="submit" id="noteDialogSave" value="save"
-          style="background:var(--brand); color:#000; border:none;">Spara</button>
+          style="background:var(--brand); color:#000; border:none;" aria-label="Spara anteckning">Spara</button>
       </div>
     </form>
   </dialog>
 
   <!-- Export Dialog -->
-  <dialog id="exportDialog" style="max-width:700px; width:90vw;">
+  <dialog id="exportDialog" style="max-width:700px; width:90vw;" aria-labelledby="exportDialogHeading">
     <form method="dialog" style="padding:24px;">
-      <h3>Exportera urval</h3>
+      <h3 id="exportDialogHeading">Exportera urval</h3>
       <p>Urvalet har kopierats till urklipp.</p>
 
       <div style="margin-top:16px;">
-        <label style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:8px;">Förhandsvisning (<span id="exportPreviewCount">0</span> objekt):</label>
-        <div id="exportPreview"
+        <label for="exportPreview" style="display:block; font-weight:600; font-size:0.9rem; margin-bottom:8px;">Förhandsvisning (<span id="exportPreviewCount" aria-live="polite">0</span> objekt):</label>
+        <div id="exportPreview" role="region" aria-label="Förhandsvisning av urval"
           style="max-height:300px; overflow-y:auto; padding:12px; border:1px solid var(--border-soft); border-radius:4px; background:var(--field-bg); color:var(--text-main); font-size:0.85rem; white-space:pre-wrap; font-family:monospace; line-height:1.6;"></div>
       </div>
 
       <label for="emailSubject" style="display:block; margin-top:20px; font-weight:600; font-size:0.9rem;">Ämne för
         e-post:</label>
-      <input type="text" id="emailSubject"
+      <input type="text" id="emailSubject" aria-label="E-postämne för urval"
         style="width:100%; padding:8px; margin-top:8px; border:1px solid var(--border-soft); border-radius:4px; background:var(--field-bg); color:var(--text-main); font-size:16px;">
 
       <div class="dialog-actions" style="margin-top:24px;">
-        <button type="button" id="exportDialogClose"
+        <button type="button" id="exportDialogClose" aria-label="Stäng exportdialog"
           style="background:transparent; border:1px solid var(--border-soft); color:var(--text-muted);">Stäng</button>
-        <button type="submit" id="exportDialogSend" value="send"
+        <button type="submit" id="exportDialogSend" value="send" aria-label="Skicka urval via e-post"
           style="background:var(--brand); color:#000; border:none;">Skicka e-post</button>
       </div>
     </form>
   </dialog>
 
   <!-- Confirm Dialog -->
-  <dialog id="confirmDialog">
+  <dialog id="confirmDialog" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
     <form method="dialog" style="padding:24px;">
       <h3 id="confirmTitle">Bekräfta</h3>
       <p id="confirmMessage">Är du säker?</p>
       <div class="dialog-actions" style="margin-top:24px;">
-        <button type="button" id="confirmCancel"
+        <button type="button" id="confirmCancel" aria-label="Avbryt åtgärd"
           style="background:transparent; border:1px solid var(--border-soft); color:var(--text-muted);">Avbryt</button>
-        <button type="submit" id="confirmOk" value="ok"
+        <button type="submit" id="confirmOk" value="ok" aria-label="Bekräfta åtgärd"
           style="background:var(--brand); color:#000; border:none;">OK</button>
       </div>
     </form>
@@ -1939,12 +2074,49 @@
       const hasMore = data.length > displayedCount;
 
       const frag = document.createDocumentFragment();
-      itemsToShow.forEach(row => {
-        const card = document.createElement('div');
+      itemsToShow.forEach((row, index) => {
+        const card = document.createElement('article');
         card.className = 'card';
+        card.setAttribute('role', 'listitem');
+        card.setAttribute('tabindex', '0');
 
         const vg = (row['id'] || '').toString().toUpperCase();
-        if (isVG(vg)) card.setAttribute('data-vg', vg);
+        if (isVG(vg)) {
+          card.setAttribute('data-vg', vg);
+          card.setAttribute('aria-label', `Konstverk ${index + 1}: ${row['title'] || 'Utan titel'} av ${row['creator'] || 'okänd konstnär'}`);
+        }
+
+        // Set color accent based on artform
+        const artform = row['artform'] || row['﻿artform'] || '';
+        const artformLower = artform.toLowerCase();
+        let accentColor = '#e5e7eb'; // default gray
+
+        if (artformLower.includes('måleri')) accentColor = '#f59e0b'; // amber
+        else if (artformLower.includes('skulptur')) accentColor = '#8b5cf6'; // purple
+        else if (artformLower.includes('grafik')) accentColor = '#06b6d4'; // cyan
+        else if (artformLower.includes('textil')) accentColor = '#ec4899'; // pink
+        else if (artformLower.includes('fotografi')) accentColor = '#10b981'; // emerald
+        else if (artformLower.includes('keramik')) accentColor = '#f97316'; // orange
+
+        card.style.setProperty('--card-accent', accentColor);
+
+        // Extract title and creator for prominent display
+        const title = row['title'] || row['﻿title'] || 'Utan titel';
+        const creator = row['creator'] || row['﻿creator'] || '';
+
+        // Create title element
+        const titleEl = document.createElement('div');
+        titleEl.className = 'card-title';
+        titleEl.textContent = title;
+        card.appendChild(titleEl);
+
+        // Create artist element (if exists)
+        if (creator) {
+          const artistEl = document.createElement('div');
+          artistEl.className = 'card-artist';
+          artistEl.textContent = creator;
+          card.appendChild(artistEl);
+        }
 
         const kv = document.createElement('div');
         kv.className = 'kv';
@@ -1953,6 +2125,9 @@
           const key = col.replace(/^\uFEFF/, '');
           let val = row[key] ?? row[col] ?? ''; // Hantera både clean key och original key
           if (key === 'id' && typeof val === 'string') val = val.toUpperCase();
+
+          // Skip title and creator since we're displaying them prominently above
+          if (key === 'title' || key === 'creator') return;
 
           const k = document.createElement('div');
           k.className = 'k';
@@ -2020,6 +2195,7 @@
               plusBtn.textContent = '+';
               plusBtn.className = 'filter-btn';
               plusBtn.title = 'Lägg till som filter';
+              plusBtn.setAttribute('aria-label', `Lägg till filter för ${columnsMap[col]}: ${val}`);
 
               plusBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -2055,6 +2231,7 @@
               minusBtn.textContent = '−';
               minusBtn.className = 'filter-btn';
               minusBtn.title = 'Ta bort filter';
+              minusBtn.setAttribute('aria-label', `Ta bort filter för ${columnsMap[col]}: ${val}`);
 
               minusBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -2117,6 +2294,91 @@
         card.appendChild(btnRow);
 
         if (selected) card.classList.add('selected');
+
+        // Add keyboard navigation support
+        card.addEventListener('keydown', (e) => {
+          // Enter or Space to toggle selection
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (isVG(vg)) {
+              toggleSelection({ ...row, id: vg });
+            }
+          }
+          // Arrow keys for 2D grid navigation
+          else if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            e.preventDefault();
+            const cards = Array.from(document.querySelectorAll('.card'));
+            const currentIndex = cards.indexOf(card);
+
+            // Calculate grid layout based on card positions
+            const cardRect = card.getBoundingClientRect();
+            const cardsWithPositions = cards.map((c, idx) => ({
+              element: c,
+              index: idx,
+              rect: c.getBoundingClientRect()
+            }));
+
+            let targetCard = null;
+
+            if (e.key === 'ArrowRight') {
+              // Find card to the right (same row, next column)
+              targetCard = cardsWithPositions.find((c, idx) =>
+                idx > currentIndex &&
+                Math.abs(c.rect.top - cardRect.top) < 10 && // Same row (tolerance for alignment)
+                c.rect.left > cardRect.left
+              );
+              // If no card to the right, go to first card on next row
+              if (!targetCard) {
+                targetCard = cardsWithPositions.find(c => c.rect.top > cardRect.bottom - 10);
+              }
+            }
+            else if (e.key === 'ArrowLeft') {
+              // Find card to the left (same row, previous column)
+              const leftCards = cardsWithPositions.filter((c, idx) =>
+                idx < currentIndex &&
+                Math.abs(c.rect.top - cardRect.top) < 10 &&
+                c.rect.right < cardRect.right
+              );
+              targetCard = leftCards[leftCards.length - 1]; // Get closest to the left
+              // If no card to the left, go to last card on previous row
+              if (!targetCard) {
+                const prevRowCards = cardsWithPositions.filter(c => c.rect.bottom < cardRect.top + 10);
+                targetCard = prevRowCards[prevRowCards.length - 1];
+              }
+            }
+            else if (e.key === 'ArrowDown') {
+              // Find card below (next row, similar horizontal position)
+              const belowCards = cardsWithPositions.filter(c => c.rect.top > cardRect.bottom - 10);
+              // Find the one with closest horizontal alignment
+              targetCard = belowCards.reduce((closest, c) => {
+                if (!closest) return c;
+                const closestDiff = Math.abs(closest.rect.left - cardRect.left);
+                const currentDiff = Math.abs(c.rect.left - cardRect.left);
+                return currentDiff < closestDiff ? c : closest;
+              }, null);
+            }
+            else if (e.key === 'ArrowUp') {
+              // Find card above (previous row, similar horizontal position)
+              const aboveCards = cardsWithPositions.filter(c => c.rect.bottom < cardRect.top + 10);
+              // Find the one with closest horizontal alignment
+              targetCard = aboveCards.reduce((closest, c) => {
+                if (!closest) return c;
+                const closestDiff = Math.abs(closest.rect.left - cardRect.left);
+                const currentDiff = Math.abs(c.rect.left - cardRect.left);
+                return currentDiff < closestDiff ? c : closest;
+              }, null);
+            }
+
+            // Focus the target card, or fallback to simple next/previous
+            if (targetCard) {
+              targetCard.element.focus();
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+              cards[Math.min(currentIndex + 1, cards.length - 1)]?.focus();
+            } else {
+              cards[Math.max(currentIndex - 1, 0)]?.focus();
+            }
+          }
+        });
 
         frag.appendChild(card);
       });
@@ -2202,6 +2464,8 @@
     toggleAdvancedBtn?.addEventListener('click', () => {
       if (advancedFiltersDetails) {
         advancedFiltersDetails.open = !advancedFiltersDetails.open;
+        // Update aria-expanded for accessibility
+        toggleAdvancedBtn.setAttribute('aria-expanded', advancedFiltersDetails.open.toString());
       }
     });
 
@@ -2508,6 +2772,9 @@
       currentView = 'list';
       listViewBtn.classList.add('active');
       mapViewBtn.classList.remove('active');
+      // Update aria-pressed for accessibility
+      listViewBtn.setAttribute('aria-pressed', 'true');
+      mapViewBtn.setAttribute('aria-pressed', 'false');
       listViewContainer.style.display = 'block';
       mapViewContainer.classList.remove('active');
       sortingOptions.style.display = 'flex';
@@ -2519,6 +2786,9 @@
       currentView = 'map';
       mapViewBtn.classList.add('active');
       listViewBtn.classList.remove('active');
+      // Update aria-pressed for accessibility
+      mapViewBtn.setAttribute('aria-pressed', 'true');
+      listViewBtn.setAttribute('aria-pressed', 'false');
       listViewContainer.style.display = 'none';
       mapViewContainer.classList.add('active');
       sortingOptions.style.display = 'none';
@@ -2546,6 +2816,8 @@
     toggleSelectionPanel?.addEventListener('click', () => {
       if (selectionPanel) {
         selectionPanel.open = !selectionPanel.open;
+        // Update aria-expanded for accessibility
+        toggleSelectionPanel.setAttribute('aria-expanded', selectionPanel.open.toString());
       }
     });
 
