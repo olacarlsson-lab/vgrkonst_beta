@@ -151,9 +151,14 @@
       margin-bottom: 10px;
     }
 
-    #universalSearch {
+    .search-wrapper {
+      position: relative;
       flex: 1;
-      padding: .85rem 1rem;
+    }
+
+    #universalSearch {
+      width: 100%;
+      padding: .85rem 2.5rem .85rem 1rem;
       border: 1px solid var(--border-soft);
       border-radius: 12px;
       font-size: 1rem;
@@ -171,6 +176,34 @@
       outline: none;
       border-color: var(--brand);
       box-shadow: 0 0 0 2px rgba(56, 189, 248, .2), 0 2px 12px rgba(15, 23, 42, .08);
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      line-height: 1;
+      border-radius: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s, background .18s;
+    }
+
+    .clear-search-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .clear-search-btn:hover {
+      background: rgba(0, 0, 0, .08);
+      color: var(--text-main);
     }
 
     .toggle-advanced-btn {
@@ -697,8 +730,12 @@
         gap: 8px;
       }
 
+      .search-wrapper {
+        width: 100%;
+      }
+
       #universalSearch {
-        padding: 0.85rem 1rem;
+        padding: 0.85rem 2.5rem 0.85rem 1rem;
         font-size: 1rem;
       }
 
@@ -759,7 +796,10 @@
   <div class="wrap">
     <!-- Universal Search -->
     <div id="universalSearchContainer">
-      <input type="search" id="universalSearch" placeholder="Sök konstverk (konstnär, titel, år, VG-nummer...)" autocomplete="off" />
+      <div class="search-wrapper">
+        <input type="search" id="universalSearch" placeholder="Sök konstverk (konstnär, titel, år, VG-nummer...)" autocomplete="off" />
+        <button type="button" id="clearSearchBtn" class="clear-search-btn" aria-label="Rensa sökning" title="Rensa sökning">×</button>
+      </div>
       <button type="button" id="toggleAdvanced" class="toggle-advanced-btn">Avancerade filter</button>
     </div>
 
@@ -2112,6 +2152,30 @@
     const universalSearchInput = document.getElementById('universalSearch');
     const toggleAdvancedBtn = document.getElementById('toggleAdvanced');
     const advancedFiltersDetails = document.getElementById('advancedFilters');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    // Toggle clear button visibility
+    function updateClearButtonVisibility() {
+      if (universalSearchInput && clearSearchBtn) {
+        if (universalSearchInput.value.trim().length > 0) {
+          clearSearchBtn.classList.add('visible');
+        } else {
+          clearSearchBtn.classList.remove('visible');
+        }
+      }
+    }
+
+    // Clear search functionality
+    clearSearchBtn?.addEventListener('click', () => {
+      if (universalSearchInput) {
+        universalSearchInput.value = '';
+        updateClearButtonVisibility();
+        // Reset to show all results
+        runSearchFromForm();
+        // Focus back on search field
+        universalSearchInput.focus();
+      }
+    });
 
     // Toggle advanced filters
     toggleAdvancedBtn?.addEventListener('click', () => {
@@ -2123,6 +2187,7 @@
     // Universal search input handler with debounce
     let universalSearchTimeout = null;
     universalSearchInput?.addEventListener('input', (e) => {
+      updateClearButtonVisibility();
       clearTimeout(universalSearchTimeout);
       universalSearchTimeout = setTimeout(() => {
         const query = e.target.value.trim();
