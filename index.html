@@ -805,7 +805,7 @@
 
     <!-- Advanced Filters (Collapsible) -->
     <details id="advancedFilters">
-      <summary style="cursor:pointer; user-select:none; font-size:0.9rem; color:var(--text-muted); margin-top:10px;">Avancerade filter</summary>
+      <summary style="display:none;"></summary>
       <form id="searchForm" aria-label="Sök i datasetet">
         <input type="search" id="creatorInput" placeholder="konstnär" autocomplete="off" />
         <input type="search" id="titleInput" placeholder="titel" autocomplete="off" />
@@ -825,44 +825,58 @@
       </form>
     </details>
 
-    <!-- Totaler + urvalspanel -->
-    <div id="totalCount"></div>
-    <div style="margin-top: 4px;">
-      <button id="reloadDataBtn" type="button"
-        style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; text-decoration:underline; padding:0;">
-        Uppdatera data
-      </button>
-    </div>
-    <div id="selectionBar" style="display:flex; gap:8px; align-items:center;">
-      <span id="selectionCount">Urval: 0</span>
-      <button id="addAllBtn" type="button">Lägg till alla</button>
-      <button id="copyMailSelBtn" type="button">Exportera urval</button>
-      <button id="clearSelBtn" type="button">Rensa urval</button>
-    </div>
+    <!-- Collapsible Selection Panel -->
+    <details id="selectionPanel" style="margin-top:8px; margin-bottom:8px;">
+      <summary style="display:none;"></summary>
+      <div style="background:var(--panel-bg); padding:10px; border-radius:10px; border:1px solid var(--border-soft);">
+        <div id="selectionBar" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+          <span id="selectionCount" style="font-size:0.85rem; font-weight:600;">Urval: 0</span>
+          <button id="addAllBtn" type="button" style="font-size:0.8rem; padding:4px 10px;">Lägg till alla</button>
+          <button id="copyMailSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;">Exportera urval</button>
+          <button id="clearSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;">Rensa urval</button>
+        </div>
 
-    <!-- Expanderbar urvalslista -->
-    <details id="selectionDetails" style="margin-top:6px;">
-      <summary style="cursor:pointer; user-select:none;">Visa urval</summary>
-      <div id="selectionList" class="sel-list" aria-live="polite"></div>
+        <!-- Expanderbar urvalslista -->
+        <details id="selectionDetails">
+          <summary style="cursor:pointer; user-select:none; font-size:0.85rem; color:var(--text-muted);">Visa detaljer</summary>
+          <div id="selectionList" class="sel-list" aria-live="polite"></div>
+        </details>
+      </div>
     </details>
 
-    <!-- View Toggle -->
-    <div class="view-toggle-container">
-      <button type="button" id="listViewBtn" class="view-toggle-btn active">📋 Listvy</button>
-      <button type="button" id="mapViewBtn" class="view-toggle-btn">🗺️ Kartvy</button>
-    </div>
+    <!-- Combined control bar: View toggle + Sorting + Actions -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap;">
+      <!-- Left: View toggle + Sorting -->
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div class="view-toggle-container" style="margin:0;">
+          <button type="button" id="listViewBtn" class="view-toggle-btn active">📋 Listvy</button>
+          <button type="button" id="mapViewBtn" class="view-toggle-btn">🗺️ Kartvy</button>
+        </div>
+        <div id="sortingOptions" style="margin:0; display:flex; align-items:center; gap:8px;">
+          <label for="sortSelect" style="font-size:0.85rem; color:var(--text-muted);">Sortera:</label>
+          <select id="sortSelect"
+            style="padding:4px 8px; font-size:0.85rem; background:var(--field-bg); color:var(--text-main); border:1px solid var(--border-soft); border-radius:6px;">
+            <option value="relevance">Relevans</option>
+            <option value="artist-az">Konstnär (A-Ö)</option>
+            <option value="title-az">Titel (A-Ö)</option>
+            <option value="year-old">År (Äldst först)</option>
+            <option value="year-new">År (Nyast först)</option>
+          </select>
+        </div>
+      </div>
 
-    <!-- Sorting Options -->
-    <div id="sortingOptions" style="margin-top:12px; display:flex; align-items:center; gap:8px;">
-      <label for="sortSelect" style="font-size:0.85rem; color:var(--text-muted);">Sortera:</label>
-      <select id="sortSelect"
-        style="padding:4px 8px; font-size:0.85rem; background:var(--field-bg); color:var(--text-main); border:1px solid var(--border-soft); border-radius:6px;">
-        <option value="relevance">Relevans</option>
-        <option value="artist-az">Konstnär (A-Ö)</option>
-        <option value="title-az">Titel (A-Ö)</option>
-        <option value="year-old">År (Äldst först)</option>
-        <option value="year-new">År (Nyast först)</option>
-      </select>
+      <!-- Right: Count + Actions -->
+      <div style="display:flex; gap:10px; align-items:center;">
+        <div id="totalCount" style="margin:0; font-size:0.85rem; color:var(--text-muted);"></div>
+        <button id="toggleSelectionPanel" type="button"
+          style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer; text-decoration:underline; padding:0; white-space:nowrap;">
+          <span id="selectionPanelToggleText">Urval (0)</span>
+        </button>
+        <button id="reloadDataBtn" type="button"
+          style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer; text-decoration:underline; padding:0; white-space:nowrap;">
+          Uppdatera
+        </button>
+      </div>
     </div>
 
     <!-- Map View -->
@@ -1733,7 +1747,14 @@
 
         const details = document.getElementById('selectionDetails');
         const summary = details?.querySelector('summary');
-        if (summary) summary.textContent = selectionSize() ? `Visa urval (${selectionSize()})` : 'Visa urval';
+        if (summary) summary.textContent = selectionSize() ? `Visa detaljer` : 'Visa detaljer';
+      }
+
+      // Update toggle button text
+      const toggleText = document.getElementById('selectionPanelToggleText');
+      if (toggleText) {
+        const count = selectionSize();
+        toggleText.textContent = count > 0 ? `Visa urval (${count})` : 'Visa urval (0)';
       }
     }
 
@@ -2506,6 +2527,16 @@
       // Show current search results or all artworks with coordinates
       const artworksToShow = currentResults && currentResults.length > 0 ? currentResults : allData;
       displayArtworksOnMap(artworksToShow);
+    });
+
+    // ======= Selection Panel Toggle =======
+    const toggleSelectionPanel = document.getElementById('toggleSelectionPanel');
+    const selectionPanel = document.getElementById('selectionPanel');
+
+    toggleSelectionPanel?.addEventListener('click', () => {
+      if (selectionPanel) {
+        selectionPanel.open = !selectionPanel.open;
+      }
     });
 
     // ======= Init: dropdowns + starta laddning =======
