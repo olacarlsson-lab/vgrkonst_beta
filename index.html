@@ -1053,28 +1053,6 @@
       </form>
     </details>
 
-    <!-- Collapsible Selection Panel -->
-    <section aria-labelledby="selectionHeading">
-      <details id="selectionPanel" style="margin-top:8px; margin-bottom:8px;">
-        <summary style="display:none;"></summary>
-        <div style="background:var(--panel-bg); padding:10px; border-radius:10px; border:1px solid var(--border-soft);">
-          <h2 id="selectionHeading" class="visually-hidden">Urvalspanel</h2>
-          <div id="selectionBar" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
-            <span id="selectionCount" style="font-size:0.85rem; font-weight:600;" aria-live="polite" aria-atomic="true">Urval: 0</span>
-            <button id="addAllBtn" type="button" style="font-size:0.8rem; padding:4px 10px;" aria-label="Lägg till alla synliga konstverk i urval">Lägg till alla</button>
-            <button id="copyMailSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;" aria-label="Exportera urval till e-post eller urklipp">Exportera urval</button>
-            <button id="clearSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;" aria-label="Rensa hela urvalet">Rensa urval</button>
-          </div>
-
-          <!-- Expanderbar urvalslista -->
-          <details id="selectionDetails">
-            <summary style="cursor:pointer; user-select:none; font-size:0.85rem; color:var(--text-muted);" aria-label="Visa eller dölj urval detaljer">Visa detaljer</summary>
-            <div id="selectionList" class="sel-list" role="list" aria-live="polite"></div>
-          </details>
-        </div>
-      </details>
-    </section>
-
     <!-- Combined control bar: View toggle + Sorting + Actions -->
     <div role="toolbar" aria-label="Visnings- och sorteringsalternativ" class="control-bar">
       <!-- Top row: View toggle + Actions -->
@@ -1110,6 +1088,28 @@
         <div id="totalCount" style="font-size:0.85rem; color:var(--text-muted); white-space:nowrap;" role="status" aria-live="polite"></div>
       </div>
     </div>
+
+    <!-- Collapsible Selection Panel -->
+    <section aria-labelledby="selectionHeading">
+      <details id="selectionPanel" style="margin-top:8px; margin-bottom:8px;">
+        <summary style="display:none;"></summary>
+        <div style="background:var(--panel-bg); padding:10px; border-radius:10px; border:1px solid var(--border-soft);">
+          <h2 id="selectionHeading" class="visually-hidden">Urvalspanel</h2>
+          <div id="selectionBar" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+            <span id="selectionCount" style="font-size:0.85rem; font-weight:600;" aria-live="polite" aria-atomic="true">Urval: 0</span>
+            <button id="addAllBtn" type="button" style="font-size:0.8rem; padding:4px 10px;" aria-label="Lägg till alla synliga konstverk i urval">Lägg till alla</button>
+            <button id="copyMailSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;" aria-label="Exportera urval till e-post eller urklipp">Exportera urval</button>
+            <button id="clearSelBtn" type="button" style="font-size:0.8rem; padding:4px 10px;" aria-label="Rensa hela urvalet">Rensa urval</button>
+          </div>
+
+          <!-- Expanderbar urvalslista -->
+          <details id="selectionDetails">
+            <summary style="cursor:pointer; user-select:none; font-size:0.85rem; color:var(--text-muted);" aria-label="Visa eller dölj urval detaljer">Visa detaljer</summary>
+            <div id="selectionList" class="sel-list" role="list" aria-live="polite"></div>
+          </details>
+        </div>
+      </details>
+    </section>
 
     <!-- Map View -->
     <section id="mapViewContainer" aria-label="Kartvy av konstverk" role="region">
