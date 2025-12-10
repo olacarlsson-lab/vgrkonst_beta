@@ -2524,8 +2524,18 @@
       sortingOptions.style.display = 'none';
       loadMoreContainer.style.display = 'none';
 
-      // Show current search results or all artworks with coordinates
-      const artworksToShow = currentResults && currentResults.length > 0 ? currentResults : allData;
+      // Check if any filters are active
+      const hasActiveFilters = universalSearchInput?.value.trim().length > 0 ||
+                               document.getElementById('creatorInput')?.value.trim().length > 0 ||
+                               document.getElementById('titleInput')?.value.trim().length > 0 ||
+                               document.getElementById('createdInput')?.value.trim().length > 0 ||
+                               document.getElementById('artformSelect')?.value !== '' ||
+                               document.getElementById('artmediumSelect')?.value !== '' ||
+                               document.getElementById('idInput')?.value.trim().length > 0 ||
+                               document.getElementById('olderIdInput')?.value.trim().length > 0;
+
+      // Show filtered results if filters are active, otherwise show all data
+      const artworksToShow = hasActiveFilters && currentResults.length > 0 ? currentResults : allData;
       displayArtworksOnMap(artworksToShow);
     });
 
